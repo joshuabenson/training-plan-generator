@@ -1,0 +1,71 @@
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.container h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+}
+
+.dates {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: var(--background-color);
+  border-radius: 4px;
+}
+
+.dates p {
+  margin: 0.5rem 0;
+}
+
+.dates span {
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+.schedule h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+}
+
+.weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.week {
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1.5rem;
+}
+
+.week h4 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.workouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.workout {
+  padding: 1rem;
+  background-color: var(--background-color);
+  border-radius: 4px;
+}
+
+.workout span {
+  font-weight: 600;
+  margin-right: 0.5rem;
+} 
