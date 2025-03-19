@@ -13,7 +13,14 @@ const DAYS_OF_WEEK = [
 
 export default function PlanForm({ onSubmit }) {
   const [selectedDays, setSelectedDays] = useState([]);
-  const [targetDate, setTargetDate] = useState('');
+  const [targetDate, setTargetDate] = useState(() => {
+    const today = new Date();
+    const futureDate = new Date(today);
+    futureDate.setDate(today.getDate() + 126); // 18 weeks * 7 days
+    
+    // Format as YYYY-MM-DD for the date input value
+    return futureDate.toISOString().split('T')[0];
+  });
   const [experienceLevel, setExperienceLevel] = useState('beginner');
 
   const handleSubmit = (e) => {

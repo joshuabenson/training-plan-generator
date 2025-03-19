@@ -17,14 +17,21 @@ app.post('/generate-plan', async (req, res) => {
             await fs.readFile(path.join(__dirname, 'data', 'beginner.json'), 'utf8')
         );
 
+        // For debugging
+        console.log('Template loaded:', template);
+
+        // Ensure template is an array
+        const schedule = Array.isArray(template) ? template : [];
+        
         const plan = {
-            startDate: new Date(),
-            targetDate: new Date(targetDate),
-            schedule: template
+            startDate: new Date().toISOString(),
+            targetDate: new Date(targetDate).toISOString(),
+            schedule: schedule
         };
         
         res.json(plan);
     } catch (error) {
+        console.error('Error reading template:', error);
         res.status(500).json({ error: error.message });
     }
 });
