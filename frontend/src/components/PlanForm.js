@@ -60,6 +60,7 @@ export default function PlanForm({ onSubmit }) {
           value={targetDate}
           onChange={(e) => setTargetDate(e.target.value)}
           required
+          className={styles.formInput}
         />
       </div>
 
@@ -69,6 +70,7 @@ export default function PlanForm({ onSubmit }) {
           id="experienceLevel"
           value={experienceLevel}
           onChange={(e) => setExperienceLevel(e.target.value)}
+          className={styles.formInput}
         >
           <option value="beginner">Beginner</option>
           <option value="intermediate">Intermediate</option>
