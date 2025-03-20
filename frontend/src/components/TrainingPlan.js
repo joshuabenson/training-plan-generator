@@ -12,8 +12,41 @@ export default function TrainingPlan({ plan }) {
     }
   };
 
+  // Get workout type for styling
+  const getWorkoutType = (workout) => {
+    if (!workout) return "Rest";
+    if (typeof workout === 'object') {
+      return workout.type || "Unknown";
+    }
+    return "Unknown";
+  };
+
+  // Format workout object into a readable string
+  const formatWorkout = (workout) => {
+    if (!workout) return 'Rest';
+    
+    if (typeof workout === 'object') {
+      const { type, distance, units } = workout;
+      if (type === 'Rest') return 'Rest';
+      if (type === 'Cross') return 'Cross Training';
+      if (type === 'Half Marathon') return 'Half Marathon Race';
+      if (type === 'Marathon') return 'Marathon Race';
+      
+      return `${type}: ${distance} ${units}`;
+    }
+    
+    // If workout is already a string
+    return String(workout);
+  };
+
   // Ensure schedule exists and is an array
   const schedule = Array.isArray(plan?.schedule) ? plan.schedule : [];
+
+  // Order days of the week consistently
+  const orderedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  // Debug the structure
+  console.log('Plan structure:', JSON.stringify(plan, null, 2).substring(0, 500));
 
   return (
     <div className={styles.container}>
@@ -25,7 +58,7 @@ export default function TrainingPlan({ plan }) {
           {formatDate(plan.startDate)}
         </p>
         <p>
-          <span>Target Date:</span>{' '}
+          <span>Race Date:</span>{' '}
           {formatDate(plan.targetDate)}
         </p>
       </div>
@@ -37,11 +70,22 @@ export default function TrainingPlan({ plan }) {
             <div key={weekIndex} className={styles.week}>
               <h4>Week {weekIndex + 1}</h4>
               <div className={styles.workouts}>
-                {Object.entries(week).map(([day, workout]) => (
-                  <div key={day} className={styles.workout}>
-                    <span>{day}:</span> {workout}
-                  </div>
-                ))}
+                {orderedDays.map(day => {
+                  const workout = week[day];
+                  const workoutText = formatWorkout(workout);
+                  const workoutType = getWorkoutType(workout);
+                  
+                  return (
+                    <div 
+                      key={day} 
+                      className={styles.workout} 
+                      data-type={workoutType}
+                    >
+                      <span>{day}:</span> 
+                      {workoutText}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}

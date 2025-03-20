@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PlanForm from '../components/PlanForm';
 import TrainingPlan from '../components/TrainingPlan';
+import styles from '../styles/Home.module.css';
 
 export default function Home() {
   const [plan, setPlan] = useState(null);
@@ -24,10 +25,20 @@ export default function Home() {
   };
 
   return (
-    <div className="container">
-      <h1>Marathon Training Plan Generator</h1>
-      <PlanForm onSubmit={handlePlanGeneration} />
-      {plan && <TrainingPlan plan={plan} />}
+    <div className={styles.container}>
+      <h1 className={styles.title}>Marathon Training Plan Generator</h1>
+      
+      <div className={styles.content}>
+        <div className={styles.formContainer}>
+          <PlanForm onSubmit={handlePlanGeneration} />
+        </div>
+        
+        {plan && (
+          <div className={styles.planContainer}>
+            <TrainingPlan plan={plan} />
+          </div>
+        )}
+      </div>
     </div>
   );
 } 
