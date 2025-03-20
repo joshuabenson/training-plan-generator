@@ -25,6 +25,10 @@ export default function PlanForm({ onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('e', e);
+    console.log('selectedDays', selectedDays);
+    console.log('targetDate', targetDate);
+    console.log('experienceLevel', experienceLevel);
     onSubmit({
       preferredDays: selectedDays,
       targetDate,
