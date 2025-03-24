@@ -115,16 +115,60 @@ app.post('/generate-plan', async (req, res) => {
                 
                 preferredDays.forEach(day => {
                     // find the first non-rest day in the week
-                    const nonRestDay = Object.keys(schedule).find(dayNum => schedule[dayNum].type !== 'Rest');
+                    const nonRestDay = Object.keys(schedule).find(dayNum => schedule[dayNum].type === 'Run');
                     if (nonRestDay) {
                         processedWeek[day] = schedule[nonRestDay];
                         delete schedule[nonRestDay];
                     } else {
-                        // if no non-rest day is found then add the first possible workout from the schedule to the processedWeek
-                        processedWeek[day] = schedule[Object.keys(schedule)[0]];
-                        delete schedule[Object.keys(schedule)[0]];
+                        // processedWeek[day] = schedule[Object.keys(schedule)[0]];
+                        // delete schedule[Object.keys(schedule)[0]];
+                        // If we've run out of workouts, try to redistribute existing workouts for better spacing
+                        const currentDayNum = REVERSE_DAY_MAPPING[day.toLowerCase()];
+                        let foundWorkoutToSwap = false;
+
+                        // Look backwards through previous days to find a workout we can swap
+                        for (let i = currentDayNum - 1; i >= 1; i--) {
+                            const previousDay = DAY_MAPPING[i];
+                            // Check if this previous day has a workout and is one of our preferred days
+                            if (processedWeek[previousDay] && 
+                                processedWeek[previousDay].type === 'Run' &&
+                                preferredDays.includes(previousDay)) {
+                                
+                                // Found a workout we can swap
+                                processedWeek[day] = processedWeek[previousDay];  // Move workout to current day
+                                processedWeek[previousDay] = schedule[Object.keys(schedule)[0]];  // Assign rest to previous day
+                                delete schedule[Object.keys(schedule)[0]];
+                                foundWorkoutToSwap = true;
+                                break;
+                            }
+                        }
+
+                        // If we couldn't find a workout to swap, just assign rest day as before
+                        if (!foundWorkoutToSwap) {
+                            processedWeek[day] = schedule[Object.keys(schedule)[0]];
+                            delete schedule[Object.keys(schedule)[0]];
+                        }
                     }
                 });
+
+                // Check if there's still a long run in the remaining schedule
+                const longRunDay = Object.keys(schedule).find(dayNum => 
+                    schedule[dayNum].type === 'Run' && schedule[dayNum].long === true
+                );
+
+                if (longRunDay) {
+                    // Find the last workout day in our processed week
+                    const lastWorkoutDay = Object.keys(processedWeek)
+                        .reverse()
+                        .find(day => processedWeek[day].type === 'Run');
+
+                    if (lastWorkoutDay) {
+                        // Swap the last workout with the long run
+                        processedWeek[lastWorkoutDay] = schedule[longRunDay];
+                        delete schedule[longRunDay];
+                    }
+                }
+                
                 console.log('processedWeek!',processedWeek);
                 processedSchedule.push(processedWeek);
             });

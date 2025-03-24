@@ -33,7 +33,8 @@
             "6": {
               "type": "Run",
               "distance": 6,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -73,7 +74,8 @@
             "6": {
               "type": "Run",
               "distance": 7,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -113,7 +115,8 @@
             "6": {
               "type": "Run",
               "distance": 5,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -153,7 +156,8 @@
             "6": {
               "type": "Run",
               "distance": 9,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -193,7 +197,8 @@
             "6": {
               "type": "Run",
               "distance": 10,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -233,7 +238,8 @@
             "6": {
               "type": "Run",
               "distance": 7,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -273,7 +279,8 @@
             "6": {
               "type": "Run",
               "distance": 12,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -316,7 +323,8 @@
               "units": "miles"
             },
             "7": {
-              "type": "Half Marathon",
+              "type": "Run",
+              "long": true,
               "distance": 13.1,
               "units": "miles"
             }
@@ -353,7 +361,8 @@
             "6": {
               "type": "Run",
               "distance": 10,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -393,7 +402,8 @@
             "6": {
               "type": "Run",
               "distance": 15,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -433,7 +443,8 @@
             "6": {
               "type": "Run",
               "distance": 16,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -473,7 +484,8 @@
             "6": {
               "type": "Run",
               "distance": 12,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -513,7 +525,8 @@
             "6": {
               "type": "Run",
               "distance": 18,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -553,7 +566,8 @@
             "6": {
               "type": "Run",
               "distance": 14,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -593,7 +607,8 @@
             "6": {
               "type": "Run",
               "distance": 20,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -633,7 +648,8 @@
             "6": {
               "type": "Run",
               "distance": 12,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -673,7 +689,8 @@
             "6": {
               "type": "Run",
               "distance": 8,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             },
             "7": {
               "type": "Cross",
@@ -716,9 +733,10 @@
               "units": "miles"
             },
             "7": {
-              "type": "Marathon",
+              "type": "Run",
               "distance": 26.2,
-              "units": "miles"
+              "units": "miles",
+              "long": true
             }
           }
         }
