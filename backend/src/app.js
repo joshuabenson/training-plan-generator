@@ -11,13 +11,24 @@ app.use(express.json());
 
 // Map numeric days to day names
 const DAY_MAPPING = {
-  1: 'Monday',
-  2: 'Tuesday',
-  3: 'Wednesday',
-  4: 'Thursday',
-  5: 'Friday',
-  6: 'Saturday',
-  7: 'Sunday'
+  1: 'monday',
+  2: 'tuesday',
+  3: 'wednesday',
+  4: 'thursday',
+  5: 'friday',
+  6: 'saturday',
+  7: 'sunday'
+};
+
+// At the top with other constants, add reverse mapping
+const REVERSE_DAY_MAPPING = {
+    'monday': 1,
+    'tuesday': 2,
+    'wednesday': 3,
+    'thursday': 4,
+    'friday': 5,
+    'saturday': 6,
+    'sunday': 7
 };
 
 app.post('/generate-plan', async (req, res) => {
@@ -40,21 +51,125 @@ app.post('/generate-plan', async (req, res) => {
         
         if (Array.isArray(weeks)) {
             weeks.forEach(week => {
+
+
+                // we need the schedule to align with the passed in preffered days
+                // for the first verison of this functionality we will just make sure each preferred day has a workout
+                // and once we run out of workouts we can leave the rest as rest days
+                // late I will add in combining of non long runs so that the weekly mileage stays the same even
+                // if only two days of the week are preferred
+
+                // iterate through the ordered preferred days array (ex: ["Monday", "Wednesday", "Friday"]) 
+                // and for each day iterate through the week template and find the first non-rest day
+                // and add it to the processedWeek for that day while removing it from the template so it isn't reused
+                // then fill in the rest of the days with the remaining workouts
+
+                // then for version two, after this process is done we will check to see what workouts are left
+                // and then we will pick the best option to fill in the remaining workout
+                // to do this, we will write a smart algorithm that intelligently finds the ideal day to fit in each remaining workout
+                // this is the algorithm which is based on training principals of intensity and recovery
+                   // each workout day of ther week is assigned an intensity score 
+                   // each day of the week is assigned a recovery score which starts at 0
+                   // the intensity score of a workout adds a recovery score to the *following day of the week*
+                   // and it also maps a recovery score of 1/2 to the day of the week two days later
+                   // Once each recovery score is calculated we can iterate through each possibility where we add the remaining workouts
+                   // to each week to find the combination 
+
+                   /* "schedule": {
+                        "1": {
+                        "type": "Rest",
+                        "distance": 0,
+                        "units": "miles"
+                        },
+                        "2": {
+                        "type": "Run",
+                        "distance": 3,
+                        "units": "miles"
+                        }, 
+                        ...
+                    },*/
+
+                console.log('preferredDays',preferredDays);
+                
                 const processedWeek = {};
                 
                 // For each day in the week's schedule
                 const schedule = week.schedule || week;
                 
-                if (schedule) {
-                    Object.keys(schedule).forEach(dayNum => {
-                        // Map the numeric day to a day name
-                        const dayName = DAY_MAPPING[dayNum];
-                        if (dayName) {
-                            processedWeek[dayName] = schedule[dayNum];
+                // if (schedule) {
+                //     Object.keys(schedule).forEach(dayNum => {
+                //         // Map the numeric day to a day name
+                //         const dayName = DAY_MAPPING[dayNum];
+                //         if (dayName) {
+                //             processedWeek[dayName] = schedule[dayNum];
+                //         }
+                //     });
+                // }
+
+                // we need to order the preferred days array chronologically
+                preferredDays.sort((a, b) => {
+                    const dayA = REVERSE_DAY_MAPPING[a.toLowerCase()];
+                    const dayB = REVERSE_DAY_MAPPING[b.toLowerCase()];
+                    return dayA - dayB;
+                });
+                
+                preferredDays.forEach(day => {
+                    // find the first non-rest day in the week
+                    const nonRestDay = Object.keys(schedule).find(dayNum => schedule[dayNum].type === 'Run');
+                    if (nonRestDay) {
+                        processedWeek[day] = schedule[nonRestDay];
+                        delete schedule[nonRestDay];
+                    } else {
+                        // processedWeek[day] = schedule[Object.keys(schedule)[0]];
+                        // delete schedule[Object.keys(schedule)[0]];
+                        // If we've run out of workouts, try to redistribute existing workouts for better spacing
+                        const currentDayNum = REVERSE_DAY_MAPPING[day.toLowerCase()];
+                        let foundWorkoutToSwap = false;
+
+                        // Look backwards through previous days to find a workout we can swap
+                        for (let i = currentDayNum - 1; i >= 1; i--) {
+                            const previousDay = DAY_MAPPING[i];
+                            // Check if this previous day has a workout and is one of our preferred days
+                            if (processedWeek[previousDay] && 
+                                processedWeek[previousDay].type === 'Run' &&
+                                preferredDays.includes(previousDay)) {
+                                
+                                // Found a workout we can swap
+                                processedWeek[day] = processedWeek[previousDay];  // Move workout to current day
+                                processedWeek[previousDay] = schedule[Object.keys(schedule)[0]];  // Assign rest to previous day
+                                delete schedule[Object.keys(schedule)[0]];
+                                foundWorkoutToSwap = true;
+                                break;
+                            }
                         }
-                    });
+
+                        // If we couldn't find a workout to swap, just assign rest day as before
+                        if (!foundWorkoutToSwap) {
+                            processedWeek[day] = schedule[Object.keys(schedule)[0]];
+                            delete schedule[Object.keys(schedule)[0]];
+                        }
+                    }
+                });
+
+                // Check if there's still a long run in the remaining schedule
+                const longRunDay = Object.keys(schedule).find(dayNum => 
+                    schedule[dayNum].type === 'Run' && schedule[dayNum].long === true
+                );
+
+                if (longRunDay) {
+                    // Find the last workout day in our processed week
+                    const lastWorkoutDay = Object.keys(processedWeek)
+                        .reverse()
+                        .find(day => processedWeek[day].type === 'Run');
+
+                    if (lastWorkoutDay) {
+                        // Swap the last workout with the long run
+                        processedWeek[lastWorkoutDay] = schedule[longRunDay];
+                        delete schedule[longRunDay];
+                    }
                 }
                 
+                console.log('processedWeek!',processedWeek);
                 processedSchedule.push(processedWeek);
             });
         } else {
@@ -73,13 +188,14 @@ app.post('/generate-plan', async (req, res) => {
         };
         
         // Log the final plan for debugging
-        console.log('Generated plan structure:', 
-            JSON.stringify({
-                startDate: plan.startDate,
-                targetDate: plan.targetDate,
-                scheduleLength: plan.schedule.length
-            })
-        );
+        // console.log('Generated plan structure:', 
+        //     JSON.stringify({
+        //         startDate: plan.startDate,
+        //         targetDate: plan.targetDate,
+        //         scheduleLength: plan.schedule.length,
+        //         plan: plan.schedule
+        //     })
+        // );
         
         res.json(plan);
     } catch (error) {
