@@ -43,7 +43,7 @@ export default function TrainingPlan({ plan }) {
   const schedule = Array.isArray(plan?.schedule) ? plan.schedule : [];
 
   // Order days of the week consistently
-  const orderedDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const orderedDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
   // Debug the structure
   console.log('Plan structure:', JSON.stringify(plan, null, 2).substring(0, 500));

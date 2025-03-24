@@ -11,13 +11,24 @@ app.use(express.json());
 
 // Map numeric days to day names
 const DAY_MAPPING = {
-  1: 'Monday',
-  2: 'Tuesday',
-  3: 'Wednesday',
-  4: 'Thursday',
-  5: 'Friday',
-  6: 'Saturday',
-  7: 'Sunday'
+  1: 'monday',
+  2: 'tuesday',
+  3: 'wednesday',
+  4: 'thursday',
+  5: 'friday',
+  6: 'saturday',
+  7: 'sunday'
+};
+
+// At the top with other constants, add reverse mapping
+const REVERSE_DAY_MAPPING = {
+    'monday': 1,
+    'tuesday': 2,
+    'wednesday': 3,
+    'thursday': 4,
+    'friday': 5,
+    'saturday': 6,
+    'sunday': 7
 };
 
 app.post('/generate-plan', async (req, res) => {
@@ -64,23 +75,57 @@ app.post('/generate-plan', async (req, res) => {
                    // Once each recovery score is calculated we can iterate through each possibility where we add the remaining workouts
                    // to each week to find the combination 
 
-                // console.log('preferredDays',preferredDays);
+                   /* "schedule": {
+                        "1": {
+                        "type": "Rest",
+                        "distance": 0,
+                        "units": "miles"
+                        },
+                        "2": {
+                        "type": "Run",
+                        "distance": 3,
+                        "units": "miles"
+                        }, 
+                        ...
+                    },*/
+
+                console.log('preferredDays',preferredDays);
                 
                 const processedWeek = {};
                 
                 // For each day in the week's schedule
                 const schedule = week.schedule || week;
                 
-                if (schedule) {
-                    Object.keys(schedule).forEach(dayNum => {
-                        // Map the numeric day to a day name
-                        const dayName = DAY_MAPPING[dayNum];
-                        if (dayName) {
-                            processedWeek[dayName] = schedule[dayNum];
-                        }
-                    });
-                }
+                // if (schedule) {
+                //     Object.keys(schedule).forEach(dayNum => {
+                //         // Map the numeric day to a day name
+                //         const dayName = DAY_MAPPING[dayNum];
+                //         if (dayName) {
+                //             processedWeek[dayName] = schedule[dayNum];
+                //         }
+                //     });
+                // }
+
+                // we need to order the preferred days array chronologically
+                preferredDays.sort((a, b) => {
+                    const dayA = REVERSE_DAY_MAPPING[a.toLowerCase()];
+                    const dayB = REVERSE_DAY_MAPPING[b.toLowerCase()];
+                    return dayA - dayB;
+                });
                 
+                preferredDays.forEach(day => {
+                    // find the first non-rest day in the week
+                    const nonRestDay = Object.keys(schedule).find(dayNum => schedule[dayNum].type !== 'Rest');
+                    if (nonRestDay) {
+                        processedWeek[day] = schedule[nonRestDay];
+                        delete schedule[nonRestDay];
+                    } else {
+                        // if no non-rest day is found then add the first possible workout from the schedule to the processedWeek
+                        processedWeek[day] = schedule[Object.keys(schedule)[0]];
+                        delete schedule[Object.keys(schedule)[0]];
+                    }
+                });
+                console.log('processedWeek!',processedWeek);
                 processedSchedule.push(processedWeek);
             });
         } else {
@@ -99,13 +144,14 @@ app.post('/generate-plan', async (req, res) => {
         };
         
         // Log the final plan for debugging
-        console.log('Generated plan structure:', 
-            JSON.stringify({
-                startDate: plan.startDate,
-                targetDate: plan.targetDate,
-                scheduleLength: plan.schedule.length
-            })
-        );
+        // console.log('Generated plan structure:', 
+        //     JSON.stringify({
+        //         startDate: plan.startDate,
+        //         targetDate: plan.targetDate,
+        //         scheduleLength: plan.schedule.length,
+        //         plan: plan.schedule
+        //     })
+        // );
         
         res.json(plan);
     } catch (error) {
