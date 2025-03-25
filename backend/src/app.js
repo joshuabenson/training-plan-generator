@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const HOST = '0.0.0.0';
 
 app.use(cors());
 app.use(express.json());
@@ -204,6 +205,6 @@ app.post('/generate-plan', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
     console.log(`Server running on port ${PORT}`);
 }); 
