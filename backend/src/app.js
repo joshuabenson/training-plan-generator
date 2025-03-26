@@ -32,16 +32,27 @@ const REVERSE_DAY_MAPPING = {
     'sunday': 7
 };
 
-app.get('/', (req, res) => {
-    res.json({ 
-        status: 'ok',
-        directory: __dirname,
-        exists: fs.existsSync(path.join(__dirname, 'plan-boilerplates'))
-    });
+// Add this near the top after your requires
+process.on('unhandledRejection', (error) => {
+    console.error('Unhandled Rejection:', error);
+});
+
+app.get('/', async (req, res) => {
+    try {
+        res.json({ 
+            status: 'ok',
+            directory: __dirname,
+            time: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Health check error:', error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.post('/generate-plan', async (req, res) => {
     try {
+        console.log('Received request:', req.body);  // Add this
         const { preferredDays, targetDate, experienceLevel } = req.body;
         
         // Load the boilerplate plan
@@ -208,8 +219,12 @@ app.post('/generate-plan', async (req, res) => {
         
         res.json(plan);
     } catch (error) {
-        console.error('Error generating plan:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Full error details:', error);  // Changed this
+        res.status(500).json({ 
+            message: error.message,
+            stack: error.stack,
+            path: __dirname 
+        });
     }
 });
 
