@@ -32,6 +32,14 @@ const REVERSE_DAY_MAPPING = {
     'sunday': 7
 };
 
+app.get('/', (req, res) => {
+    res.json({ 
+        status: 'ok',
+        directory: __dirname,
+        exists: fs.existsSync(path.join(__dirname, 'plan-boilerplates'))
+    });
+});
+
 app.post('/generate-plan', async (req, res) => {
     try {
         const { preferredDays, targetDate, experienceLevel } = req.body;
