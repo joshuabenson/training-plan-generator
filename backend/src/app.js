@@ -7,7 +7,17 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
 
-app.use(cors());
+const corsOptions = {
+    origin: '*', // Allow all origins
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: '*', // Allow all headers
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+};
+
+// Add specific handling for OPTIONS requests
+// app.options('*', cors(corsOptions)); // Enable pre-flight for all routes
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Map numeric days to day names

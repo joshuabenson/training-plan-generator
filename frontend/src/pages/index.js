@@ -3,14 +3,12 @@ import PlanForm from '../components/PlanForm';
 import TrainingPlan from '../components/TrainingPlan';
 import styles from '../styles/Home.module.css';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
 export default function Home() {
   const [plan, setPlan] = useState(null);
 
   const handlePlanGeneration = async (formData) => {
     try {
-      const response = await fetch(`${API_URL}/generate-plan`, {
+      const response = await fetch('http://training-plan-generator-production.up.railway.app/generate-plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
