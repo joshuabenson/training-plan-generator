@@ -8,7 +8,7 @@ export default function Home() {
 
   const handlePlanGeneration = async (formData) => {
     try {
-      const response = await fetch('http://training-plan-generator-production.up.railway.app/generate-plan', {
+      const response = await fetch('https://training-plan-generator-production.up.railway.app/generate-plan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
