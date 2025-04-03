@@ -11,6 +11,8 @@ const DAYS_OF_WEEK = [
   { id: 'sunday', label: 'Sunday' },
 ];
 
+const MIN_TRAINING_DAYS = 2;
+
 export default function PlanForm({ onSubmit }) {
   const [selectedDays, setSelectedDays] = useState([]);
   const [targetDate, setTargetDate] = useState(() => {
@@ -25,10 +27,6 @@ export default function PlanForm({ onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('e', e);
-    console.log('selectedDays', selectedDays);
-    console.log('targetDate', targetDate);
-    console.log('experienceLevel', experienceLevel);
     onSubmit({
       preferredDays: selectedDays,
       targetDate,
@@ -44,10 +42,17 @@ export default function PlanForm({ onSubmit }) {
     );
   };
 
+  const hasMinimumDays = selectedDays.length >= MIN_TRAINING_DAYS;
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.formGroup}>
-        <label>Preferred Running Days</label>
+        <label>Preferred Running Days
+          <span className={`${styles.helperText} ${hasMinimumDays ? styles.helperTextHidden : ''}`}>
+            select at least {MIN_TRAINING_DAYS} days
+          </span>
+        </label>
+
         <div className={styles.checkboxGroup}>
           {DAYS_OF_WEEK.map(({ id, label }) => (
             <div key={id} className={styles.checkboxItem}>
@@ -89,7 +94,11 @@ export default function PlanForm({ onSubmit }) {
         </select>
       </div>
 
-      <button type="submit" className={styles.button}>
+      <button 
+        type="submit" 
+        className={`${styles.button} ${!hasMinimumDays ? styles.buttonDisabled : ''}`}
+        disabled={!hasMinimumDays}
+      >
         Generate Plan
       </button>
     </form>

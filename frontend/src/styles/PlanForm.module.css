@@ -60,6 +60,22 @@
   box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
 }
 
+.helperText {
+  color: #666;
+  font-size: 0.9rem;
+  padding-left: 0.5rem;
+  display: inline-block;
+  margin-left: 8px;
+  opacity: 1;
+  font-style: italic;
+  transition: opacity 0.3s ease;
+}
+
+.helperTextHidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .button {
   width: 100%;
   padding: 1rem;
@@ -70,7 +86,7 @@
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s ease;
 }
 
 .button:hover {
@@ -87,4 +103,28 @@
   .form {
     padding: 1.5rem;
   }
+}
+
+.warning {
+  color: #e53e3e;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #fff5f5;
+  border-radius: 6px;
+  border: 1px solid #fed7d7;
+}
+
+.buttonDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  background: linear-gradient(135deg, #999 0%, #666 100%);
+  transition: all 0.3s ease;
+}
+
+.buttonDisabled:hover {
+  transform: none;
+  box-shadow: none;
 } 
