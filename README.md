@@ -4,7 +4,7 @@ An open source training plan generation service with a testing frontend. Built w
 
 ## Overview
 
-This project provides both a training plan generation API and a testing interface. The backend service generates structured running training plans and can be integrated into any running application. The frontend provides a simple interface for testing the plan generation functionality.
+This project provides both a training plan generation API and a testing interface. The backend service generates structured running training plans. The frontend provides a simple interface for testing the plan generation functionality. 
 
 ## Purpose
 
