@@ -12,7 +12,7 @@
 
 .formGroup label {
   display: block;
-  margin-bottom: 0.8rem;
+  /* margin-bottom: 0.8rem; */
   font-weight: 600;
   color: #1a1a2e;
   font-size: 1.1rem;
@@ -155,7 +155,7 @@
 }
 
 .radioLabel input[type="radio"] {
-  margin: 0;
+  margin: 7px 5px;
   cursor: pointer;
   accent-color: #0070f3;
 }
