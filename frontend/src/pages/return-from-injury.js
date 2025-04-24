@@ -3,7 +3,7 @@ import PlanForm from '../components/PlanForm';
 import TrainingPlan from '../components/TrainingPlan';
 import styles from '../styles/Home.module.css';
 
-export default function Home() {
+export default function ReturnFromInjury() {
   const [plan, setPlan] = useState(null);
 
   const handlePlanGeneration = async (formData) => {
@@ -26,11 +26,11 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Rerunnr Training Plan Preview</h1>
+      <h1 className={styles.title}>Injury Recovery Plan Preview</h1>
       
       <div className={styles.content}>
         <div className={styles.formContainer}>
-          <PlanForm onSubmit={handlePlanGeneration} />
+          <PlanForm onSubmit={handlePlanGeneration} planType="return-from-injury" />
         </div>
         
         {plan && (
