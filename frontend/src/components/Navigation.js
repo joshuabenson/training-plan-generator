@@ -10,7 +10,7 @@ export default function Navigation() {
     <nav className={styles.nav}>
       <div className={styles.navContainer}>
         <Link href="/" className={styles.logo}>
-          Rerunr
+          Rerunnr
         </Link>
         <div className={styles.navLinks}>
           <Link 

@@ -26,7 +26,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Rerunr Training Plan Preview</h1>
+      <h1 className={styles.title}>Rerunnr Training Plan Preview</h1>
       
       <div className={styles.content}>
         <div className={styles.formContainer}>

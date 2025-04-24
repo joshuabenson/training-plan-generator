@@ -26,7 +26,7 @@ export default function ReturnFromInjury() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Return From Injury Plan</h1>
+      <h1 className={styles.title}>Injury Recovery Plan Preview</h1>
       
       <div className={styles.content}>
         <div className={styles.formContainer}>
