@@ -8,7 +8,7 @@ export default function Home() {
 
   const handlePlanGeneration = async (formData) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/generate-plan`, {
+      const response = await fetch(`${process.env.RENDER_PUBLIC_API_URL}/generate-plan`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
