@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import PlanForm from '../components/PlanForm';
 import TrainingPlan from '../components/TrainingPlan';
+import Loading from '../components/Loading';
 import styles from '../styles/Home.module.css';
 
 export default function Home() {
   const [plan, setPlan] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handlePlanGeneration = async (formData) => {
     try {
+      setIsLoading(true);
       const response = await fetch(`${process.env.RENDER_PUBLIC_API_URL}/generate-plan`, {
         method: 'POST',
         headers: {
@@ -21,6 +24,8 @@ export default function Home() {
     } catch (error) {
       console.error('Error generating plan:', error);
       alert('Error generating training plan');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -33,7 +38,11 @@ export default function Home() {
           <PlanForm onSubmit={handlePlanGeneration} />
         </div>
         
-        {plan && (
+        {isLoading ? (
+          <div className={styles.planContainer}>
+            <Loading />
+          </div>
+        ) : plan && (
           <div className={styles.planContainer}>
             <TrainingPlan plan={plan} />
           </div>
