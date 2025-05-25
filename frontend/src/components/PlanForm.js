@@ -11,7 +11,7 @@ const DAYS_OF_WEEK = [
   { id: 'sunday', label: 'Sunday' },
 ];
 
-const WEEKLY_MILEAGE_OPTIONS = Array.from({ length: 19 }, (_, i) => (i + 1) * 5);
+const WEEKLY_MILEAGE_OPTIONS = [10, 15, 20, 25, 30, 35, 40];
 
 export default function PlanForm({ onSubmit, planType = 'marathon' }) {
   const [selectedDays, setSelectedDays] = useState([]);
