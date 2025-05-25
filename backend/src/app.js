@@ -66,7 +66,8 @@ app.post('/generate-plan', async (req, res) => {
         const { preferredDays, targetDate, experienceLevel } = req.body;
         
         // Load the boilerplate plan
-        const templatePath = req.body.planType === 'return-from-injury' ? path.join(__dirname, 'plan-boilerplates', 'injury', 'beginner.json') : 
+        // console.log(req.body);
+        const templatePath = req.body.planType === 'return-from-injury' ? path.join(__dirname, 'plan-boilerplates', 'injury', 'previous', req.body.weeklyMileage + '', 'beginner.json') : 
         path.join(__dirname, 'plan-boilerplates', 'marathon', 'weeks', '18', 'beginner.json');
         // const templatePath = path.join(__dirname, 'plan-boilerplates', 'marathon', 'weeks', '18', 'beginner.json');
         const templateData = await fs.readFile(templatePath, 'utf8');
