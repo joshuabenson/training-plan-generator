@@ -204,7 +204,39 @@ app.post('/generate-plan', async (req, res) => {
                 // move the second workout to an island day for better spacing
                 const islandDays = findIslands(processedWeek, preferredDays);
                 console.log('Found island days:', islandDays);
-                // console.log('processedWeek!',processedWeek);
+
+                // If we have island days available, look for consecutive workouts to swap
+                if (islandDays.length > 0) {
+                    // Convert the schedule to an array of day-workout pairs for easier sequential analysis
+                    const orderedDays = Object.keys(processedWeek).sort((a, b) => {
+                        return REVERSE_DAY_MAPPING[a.toLowerCase()] - REVERSE_DAY_MAPPING[b.toLowerCase()];
+                    });
+
+                    // Look for consecutive workout days
+                    for (let i = 0; i < orderedDays.length - 1; i++) {
+                        const currentDay = orderedDays[i];
+                        const nextDay = orderedDays[i + 1];
+                        
+                        // If we found consecutive workouts
+                        if (processedWeek[currentDay].type === 'Run' && 
+                            processedWeek[nextDay].type === 'Run') {
+                            
+                            console.log(`Found consecutive workouts on ${currentDay} and ${nextDay}`);
+                            
+                            // Get the first available island day
+                            const targetDay = islandDays[0];
+                            
+                            // Swap the second workout to the island day
+                            const temp = processedWeek[nextDay];
+                            processedWeek[nextDay] = { type: 'Rest', distance: 0, units: 'miles' };
+                            processedWeek[targetDay] = temp;
+                            
+                            console.log(`Moved workout from ${nextDay} to ${targetDay}`);
+                            break; // Only handle the first pair of consecutive workouts
+                        }
+                    }
+                }
+
                 processedSchedule.push(processedWeek);
             });
         } else {
