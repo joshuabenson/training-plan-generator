@@ -18,16 +18,37 @@
   justify-content: space-between;
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .logo {
   font-size: 1.75rem;
   font-weight: 800;
   color: white;
   text-decoration: none;
-  background: linear-gradient(135deg, #60A5FA, #34D399);
+  background: linear-gradient(
+    135deg,
+    #60A5FA 0%,
+    #34D399 35%,
+    #60A5FA 50%,
+    #34D399 85%,
+    #60A5FA 100%
+  );
+  background-size: 200% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
   padding: 0.5rem 0;
+}
+
+.logoShimmer {
+  animation: shimmer 2.5s ease-out;
 }
 
 .navLinks {
