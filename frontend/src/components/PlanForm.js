@@ -14,7 +14,7 @@ const DAYS_OF_WEEK = [
 const WEEKLY_MILEAGE_OPTIONS = [10, 15, 20, 25, 30, 35, 40];
 
 export default function PlanForm({ onSubmit, planType = 'marathon' }) {
-  const [selectedDays, setSelectedDays] = useState([]);
+  const [selectedDays, setSelectedDays] = useState(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
   const [targetDate, setTargetDate] = useState(() => {
     const today = new Date();
     const futureDate = new Date(today);

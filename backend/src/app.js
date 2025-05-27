@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
 const cors = require('cors');
+const findIslands = require('./utils/findIslands');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -62,7 +63,7 @@ app.get('/', async (req, res) => {
 
 app.post('/generate-plan', async (req, res) => {
     try {
-        console.log('Received request:', req.body);  // Add this
+        // console.log('Received request:', req.body);  // Add this
         const { preferredDays, targetDate, experienceLevel } = req.body;
         
         // Load the boilerplate plan
@@ -122,7 +123,7 @@ app.post('/generate-plan', async (req, res) => {
                         ...
                     },*/
 
-                console.log('preferredDays',preferredDays);
+                // console.log('preferredDays',preferredDays);
                 
                 const processedWeek = {};
                 
@@ -153,9 +154,7 @@ app.post('/generate-plan', async (req, res) => {
                         processedWeek[day] = schedule[nonRestDay];
                         delete schedule[nonRestDay];
                     } else {
-                        // processedWeek[day] = schedule[Object.keys(schedule)[0]];
-                        // delete schedule[Object.keys(schedule)[0]];
-                        // If we've run out of workouts, try to redistribute existing workouts for better spacing
+
                         const currentDayNum = REVERSE_DAY_MAPPING[day.toLowerCase()];
                         let foundWorkoutToSwap = false;
 
@@ -201,8 +200,11 @@ app.post('/generate-plan', async (req, res) => {
                         delete schedule[longRunDay];
                     }
                 }
-                
-                console.log('processedWeek!',processedWeek);
+                // if two workouts in a row and we have available islands
+                // move the second workout to an island day for better spacing
+                const islandDays = findIslands(processedWeek, preferredDays);
+                console.log('Found island days:', islandDays);
+                // console.log('processedWeek!',processedWeek);
                 processedSchedule.push(processedWeek);
             });
         } else {
