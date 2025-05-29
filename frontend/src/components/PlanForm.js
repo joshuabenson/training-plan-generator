@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '../styles/PlanForm.module.css';
 
 const DAYS_OF_WEEK = [
@@ -14,7 +14,32 @@ const DAYS_OF_WEEK = [
 const WEEKLY_MILEAGE_OPTIONS = [10, 15, 20, 25, 30, 35, 40];
 
 export default function PlanForm({ onSubmit, planType = 'marathon' }) {
-  const [selectedDays, setSelectedDays] = useState(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+  // Initialize state from localStorage if available, otherwise use defaults
+  const [selectedDays, setSelectedDays] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('preferredRunningDays');
+      return saved ? JSON.parse(saved) : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    }
+    return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  });
+
+  const [weeklyMileage, setWeeklyMileage] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('weeklyMileage');
+      return saved ? parseInt(saved) : 20;
+    }
+    return 20;
+  });
+
+  // Save to localStorage whenever values change
+  useEffect(() => {
+    localStorage.setItem('preferredRunningDays', JSON.stringify(selectedDays));
+  }, [selectedDays]);
+
+  useEffect(() => {
+    localStorage.setItem('weeklyMileage', weeklyMileage.toString());
+  }, [weeklyMileage]);
+
   const [targetDate, setTargetDate] = useState(() => {
     const today = new Date();
     const futureDate = new Date(today);
@@ -23,8 +48,8 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
     // Format as YYYY-MM-DD for the date input value
     return futureDate.toISOString().split('T')[0];
   });
+
   const [experienceLevel, setExperienceLevel] = useState('beginner');
-  const [weeklyMileage, setWeeklyMileage] = useState(20);
   const [useMiles, setUseMiles] = useState(true);
 
   const handleSubmit = (e) => {
