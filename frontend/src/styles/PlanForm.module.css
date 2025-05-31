@@ -133,6 +133,11 @@
   font-size: 1rem;
 }
 
+.distanceUnitInput {
+  display: inline-flex;
+  padding: .35rem;
+}
+
 .unitToggle {
   display: flex;
   gap: 1rem;
