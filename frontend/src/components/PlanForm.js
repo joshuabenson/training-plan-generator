@@ -115,7 +115,34 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
           className={styles.formInput}
         />
       </div>
-
+      <div className={styles.formGroup}>
+        <label htmlFor="weeklyMileage">
+            Distance Units
+        </label>
+      
+        <div className={`${styles.formInput} ${styles.distanceUnitInput}`}>
+          <label className={styles.radioLabel}>
+            <input
+              type="radio"
+              name="distanceUnit"
+              value="mi"
+              checked={useMiles}
+              onChange={() => setUseMiles(true)}
+            />
+            mi
+          </label>
+          <label className={styles.radioLabel}>
+            <input
+              type="radio"
+              name="distanceUnit"
+              value="km"
+              checked={!useMiles}
+              onChange={() => setUseMiles(false)}
+            />
+            km
+          </label>
+        </div>
+      </div>
       {planType === 'return-from-injury' && (
         <div className={styles.formGroup}>
           <label htmlFor="weeklyMileage">Previous Weekly Mileage</label>
@@ -132,28 +159,6 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
                 </option>
               ))}
             </select>
-            <div className={styles.unitToggle}>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="distanceUnit"
-                  value="mi"
-                  checked={useMiles}
-                  onChange={() => setUseMiles(true)}
-                />
-                mi
-              </label>
-              <label className={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="distanceUnit"
-                  value="km"
-                  checked={!useMiles}
-                  onChange={() => setUseMiles(false)}
-                />
-                km
-              </label>
-            </div>
           </div>
         </div>
       )}
