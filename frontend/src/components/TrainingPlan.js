@@ -1,7 +1,12 @@
 import { format, parseISO } from 'date-fns';
 import styles from '../styles/TrainingPlan.module.css';
+import { useUnit } from '../context/UnitContext';
+
+const milesToKmFactor = 1.60934;
 
 export default function TrainingPlan({ plan }) {
+  const { useMiles } = useUnit();
+
   // Safely parse dates
   const formatDate = (dateString) => {
     try {
@@ -32,7 +37,13 @@ export default function TrainingPlan({ plan }) {
       if (type === 'Half Marathon') return 'Half Marathon Race';
       if (type === 'Marathon') return 'Marathon Race';
       
-      return `${type}: ${distance} ${units}`;
+      // Convert distance if needed
+      const displayDistance = units === 'miles' && !useMiles 
+        ? Math.round(distance * milesToKmFactor * 10) / 10
+        : distance;
+      const displayUnits = useMiles ? 'mi' : 'km';
+      
+      return `${type}: ${displayDistance} ${displayUnits}`;
     }
     
     // If workout is already a string

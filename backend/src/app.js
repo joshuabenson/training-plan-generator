@@ -63,7 +63,7 @@ app.get('/', async (req, res) => {
 
 app.post('/generate-plan', async (req, res) => {
     try {
-        // console.log('Received request:', req.body);  // Add this
+        console.log('Received request:', req.body);  // Add this
         const { preferredDays, targetDate, experienceLevel } = req.body;
         
         // Load the boilerplate plan
@@ -203,7 +203,7 @@ app.post('/generate-plan', async (req, res) => {
                 // if two workouts in a row and we have available islands
                 // move the second workout to an island day for better spacing
                 const islandDays = findIslands(processedWeek, preferredDays);
-                console.log('Found island days:', islandDays);
+                // console.log('Found island days:', islandDays);
 
                 // If we have island days available, look for consecutive workouts to swap
                 if (islandDays.length > 0) {

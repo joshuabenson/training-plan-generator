@@ -61,7 +61,6 @@ function findIslands(schedule, preferredDays) {
     }
   }
 
-  console.log('Found islands:', islands);
   return islands;
 }
 
