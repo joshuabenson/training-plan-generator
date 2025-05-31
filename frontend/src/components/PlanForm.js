@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import styles from '../styles/PlanForm.module.css';
+import { useUnit } from '../context/UnitContext';
 
 const DAYS_OF_WEEK = [
   { id: 'monday', label: 'Monday' },
@@ -12,8 +13,11 @@ const DAYS_OF_WEEK = [
 ];
 
 const WEEKLY_MILEAGE_OPTIONS = [10, 15, 20, 25, 30, 35, 40];
+const milesToKmFactor = 1.60934;
 
 export default function PlanForm({ onSubmit, planType = 'marathon' }) {
+  const { useMiles, setUseMiles } = useUnit();
+  
   // Initialize state from localStorage if available, otherwise use defaults
   const [selectedDays, setSelectedDays] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -50,7 +54,6 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
   });
 
   const [experienceLevel, setExperienceLevel] = useState('beginner');
-  const [useMiles, setUseMiles] = useState(true);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -59,7 +62,7 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
       targetDate,
       experienceLevel,
       planType,
-      weeklyMileage: useMiles ? weeklyMileage : Math.round(weeklyMileage * 1.60934),
+      weeklyMileage,
       distanceUnit: useMiles ? 'mi' : 'km',
     });
   };
@@ -125,7 +128,7 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
             >
               {WEEKLY_MILEAGE_OPTIONS.map(miles => (
                 <option key={miles} value={miles}>
-                  {miles} {useMiles ? 'mi' : 'km'}
+                  {useMiles ? miles : Math.round(miles * milesToKmFactor)} {useMiles ? 'mi' : 'km'}
                 </option>
               ))}
             </select>
