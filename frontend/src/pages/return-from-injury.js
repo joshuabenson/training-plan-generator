@@ -7,6 +7,10 @@ import styles from '../styles/Home.module.css';
 export default function ReturnFromInjury() {
   const [plan, setPlan] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  // wake up the backend
+  fetch(`${process.env.NEXT_PUBLIC_API_URL}/`, {
+    method: 'GET',
+  });
 
   const handlePlanGeneration = async (formData) => {
     try {
