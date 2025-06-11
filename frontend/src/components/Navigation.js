@@ -34,7 +34,7 @@ export default function Navigation() {
     if (user) {
       logout();
     } else {
-      signInWithGoogle();
+      router.push('/login');
     }
   };
 
