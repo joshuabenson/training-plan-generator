@@ -56,9 +56,6 @@ export default function Login() {
           <h3>Why sign in?</h3>
           <ul>
             <li>Save your training plans</li>
-            <li>Track weekly progress</li>
-            <li>Access plans from any device</li>
-            <li>Never lose your training schedule</li>
           </ul>
         </div>
       </div>

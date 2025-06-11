@@ -67,12 +67,14 @@
 }
 
 .features h3 {
+  text-align: center;
   margin-bottom: 1rem;
   color: #1a1a2e;
   font-size: 1.1rem;
 }
 
 .features ul {
+  text-align: center;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -88,7 +90,7 @@
 .features li::before {
   content: '✓';
   position: absolute;
-  left: 0;
+  left: 30px;
   color: #34D399;
   font-weight: bold;
 }
