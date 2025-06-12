@@ -14,12 +14,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only set up auth listener if Firebase is properly configured
-    if (!auth) {
-      setLoading(false);
-      return;
-    }
-
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);

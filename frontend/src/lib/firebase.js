@@ -13,9 +13,12 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// // Initialize Firebase only if it hasn't been initialized already
-// const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+// Debug: Check if env vars are loaded
+console.log('Firebase API Key:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? 'Loaded' : 'Missing');
 
-// export const auth = getAuth(app);
-// export const db = getFirestore(app);
-// export default app; 
+// Initialize Firebase only if it hasn't been initialized already
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export default app; 

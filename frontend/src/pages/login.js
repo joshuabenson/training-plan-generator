@@ -34,7 +34,7 @@ export default function Login() {
   return (
     <div className={styles.container}>
       <div className={styles.loginCard}>
-        <h1 className={styles.title}>Sign In to Rerunnr</h1>
+        <h1 className={styles.title}>Sign In to Rerunnr Preview</h1>
         <p className={styles.subtitle}>
           Save your training plans and track your progress
         </p>
@@ -52,15 +52,12 @@ export default function Login() {
           Continue with Google
         </button>
 
-        <div className={styles.features}>
+        {/* <div className={styles.features}>
           <h3>Why sign in?</h3>
           <ul>
             <li>Save your training plans</li>
-            <li>Track weekly progress</li>
-            <li>Access plans from any device</li>
-            <li>Never lose your training schedule</li>
           </ul>
-        </div>
+        </div> */}
       </div>
     </div>
   );
