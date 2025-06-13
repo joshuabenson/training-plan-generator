@@ -27,8 +27,8 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
   // Initialize state from localStorage if available, otherwise use defaults
   const [selectedDays, setSelectedDays] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('preferredRunningDays');
-      return saved ? JSON.parse(saved) : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      // const saved = localStorage.getItem('preferredRunningDays');
+      // return saved ? JSON.parse(saved) : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     }
     return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   });
