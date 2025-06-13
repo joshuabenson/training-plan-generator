@@ -278,6 +278,60 @@ app.post('/generate-plan', async (req, res) => {
     }
 });
 
+// Save user form preferences to Firestore
+app.post('/save-preferences', async (req, res) => {
+    console.log('Saving preferences:', req.body);
+    try {
+        const { userId, preferredDays, experienceLevel, weeklyMileage, distanceUnit } = req.body;
+        
+        // Validate required fields
+        if (!userId) {
+            return res.status(400).json({ error: 'userId is required' });
+        }
+        
+        const preferencesData = {
+            userId,
+            preferredDays,
+            experienceLevel,
+            weeklyMileage,
+            distanceUnit,
+            updatedAt: new Date()
+        };
+        
+        // Use userId as document ID to ensure one preference doc per user
+        await db.collection('user-preferences').doc(userId).set(preferencesData);
+        
+        res.json({ 
+            success: true, 
+            message: 'Preferences saved successfully' 
+        });
+        
+    } catch (error) {
+        console.error('Error saving preferences:', error);
+        res.status(500).json({ error: 'Failed to save preferences' });
+    }
+});
+
+// Get user's form preferences
+app.get('/preferences/:userId', async (req, res) => {
+    console.log('Fetching preferences for user:', req.params.userId);
+    try {
+        const { userId } = req.params;
+        
+        const doc = await db.collection('user-preferences').doc(userId).get();
+        
+        if (!doc.exists) {
+            return res.json({ preferences: null });
+        }
+        
+        res.json({ preferences: doc.data() });
+        
+    } catch (error) {
+        console.error('Error fetching preferences:', error);
+        res.status(500).json({ error: 'Failed to fetch preferences' });
+    }
+});
+
 // Save training plan to Firestore
 app.post('/save-plan', async (req, res) => {
     try {

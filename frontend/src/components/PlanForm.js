@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import styles from '../styles/PlanForm.module.css';
 import { useUnit } from '../context/UnitContext';
+import { useAuth } from '../context/AuthContext';
+import { preferencesAPI } from '../services/api';
 
 const DAYS_OF_WEEK = [
   { id: 'monday', label: 'Monday' },
@@ -17,6 +19,10 @@ const milesToKmFactor = 1.60934;
 
 export default function PlanForm({ onSubmit, planType = 'marathon' }) {
   const { useMiles, setUseMiles } = useUnit();
+  const { user } = useAuth();
+  const [planGenerated, setPlanGenerated] = useState(false);
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(false);
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   
   // Initialize state from localStorage if available, otherwise use defaults
   const [selectedDays, setSelectedDays] = useState(() => {
@@ -55,16 +61,76 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
 
   const [experienceLevel, setExperienceLevel] = useState('beginner');
 
-  const handleSubmit = (e) => {
+  // Load user preferences when user logs in
+  useEffect(() => {
+    console.log('useEffect triggered, user:', user ? user.uid : 'null');
+    
+    const loadUserPreferences = async () => {
+      if (!user) {
+        console.log('No user logged in, skipping preference load');
+        return;
+      }
+      
+      console.log('Loading preferences for user:', user.uid);
+      setIsLoadingPreferences(true);
+      try {
+        const { preferences } = await preferencesAPI.getPreferences(user.uid);
+        console.log('Received preferences:', preferences);
+        
+        if (preferences) {
+          console.log('Applying preferences to form');
+          // Restore user preferences
+          setSelectedDays(preferences.preferredDays || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
+          setExperienceLevel(preferences.experienceLevel || 'beginner');
+          setWeeklyMileage(preferences.weeklyMileage || 20);
+          setUseMiles(preferences.distanceUnit === 'mi');
+        } else {
+          console.log('No preferences found for user');
+        }
+      } catch (error) {
+        console.error('Failed to load preferences:', error);
+      } finally {
+        setIsLoadingPreferences(false);
+      }
+    };
+
+    loadUserPreferences();
+  }, [user, setUseMiles]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit({
+    
+    const formData = {
       preferredDays: selectedDays,
       targetDate,
       experienceLevel,
       planType,
       weeklyMileage,
       distanceUnit: useMiles ? 'mi' : 'km',
-    });
+    };
+
+    if (planGenerated && user) {
+      console.log('Saving preferences:', formData);
+      // Save preferences mode
+      setIsSavingPreferences(true);
+      try {
+        await preferencesAPI.savePreferences(user.uid, {
+          preferredDays: selectedDays,
+          experienceLevel,
+          weeklyMileage,
+          distanceUnit: useMiles ? 'mi' : 'km'
+        });
+        console.log('Preferences saved successfully!');
+      } catch (error) {
+        console.error('Failed to save preferences:', error);
+      } finally {
+        setIsSavingPreferences(false);
+      }
+    } else {
+      // Generate plan mode
+      onSubmit(formData);
+      setPlanGenerated(true);
+    }
   };
 
   const handleDayToggle = (day) => {
@@ -182,9 +248,12 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
       <button 
         type="submit" 
         className={`${styles.button} ${!hasMinimumDays ? styles.buttonDisabled : ''}`}
-        disabled={!hasMinimumDays}
+        disabled={!hasMinimumDays || isLoadingPreferences || isSavingPreferences}
       >
-        Generate {planType === 'marathon' ? 'Marathon' : 'Return From Injury'} Plan
+        {isLoadingPreferences ? 'Loading...' : 
+         isSavingPreferences ? 'Saving...' :
+         (planGenerated && user) ? 'Save Plan Changes' : 
+         `Generate ${planType === 'marathon' ? 'Marathon' : 'Return From Injury'} Plan`}
       </button>
     </form>
   );
