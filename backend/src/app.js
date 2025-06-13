@@ -1,8 +1,11 @@
+require('dotenv').config();
+
 const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
 const cors = require('cors');
 const findIslands = require('./utils/findIslands');
+const { db } = require('./config/firebase');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -272,6 +275,67 @@ app.post('/generate-plan', async (req, res) => {
             stack: error.stack,
             path: __dirname 
         });
+    }
+});
+
+// Save training plan to Firestore
+app.post('/save-plan', async (req, res) => {
+    try {
+        const { userId, preferredDays, targetDate, experienceLevel, weeklyMileage, distanceUnit } = req.body;
+        
+        // Validate required fields
+        if (!userId) {
+            return res.status(400).json({ error: 'userId is required' });
+        }
+        
+        const planData = {
+            userId,
+            preferredDays,
+            targetDate: new Date(targetDate),
+            experienceLevel,
+            weeklyMileage,
+            distanceUnit,
+            createdAt: new Date()
+        };
+        
+        // Save to Firestore
+        const docRef = await db.collection('training-plans').add(planData);
+        
+        res.json({ 
+            success: true, 
+            planId: docRef.id,
+            message: 'Training plan saved successfully' 
+        });
+        
+    } catch (error) {
+        console.error('Error saving plan:', error);
+        res.status(500).json({ error: 'Failed to save training plan' });
+    }
+});
+
+// Get user's training plans
+app.get('/plans/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        const snapshot = await db.collection('training-plans')
+            .where('userId', '==', userId)
+            .orderBy('createdAt', 'desc')
+            .get();
+        
+        const plans = [];
+        snapshot.forEach(doc => {
+            plans.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        res.json(plans);
+        
+    } catch (error) {
+        console.error('Error fetching plans:', error);
+        res.status(500).json({ error: 'Failed to fetch training plans' });
     }
 });
 
