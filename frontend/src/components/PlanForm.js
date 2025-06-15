@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import styles from '../styles/PlanForm.module.css';
 import { useUnit } from '../context/UnitContext';
 import { useAuth } from '../context/AuthContext';
 import { preferencesAPI } from '../services/api';
 
+// Constants
 const DAYS_OF_WEEK = [
   { id: 'monday', label: 'Monday' },
   { id: 'tuesday', label: 'Tuesday' },
@@ -15,87 +16,171 @@ const DAYS_OF_WEEK = [
 ];
 
 const WEEKLY_MILEAGE_OPTIONS = [10, 15, 20, 25, 30, 35, 40];
-const milesToKmFactor = 1.60934;
+const MILES_TO_KM_FACTOR = 1.60934;
+const DEFAULT_TRAINING_WEEKS = 18;
 
+const BUTTON_STATES = {
+  INITIAL: 'initial',
+  PLAN_GENERATED: 'plan-generated',
+  FORM_CHANGED: 'form-changed'
+};
+
+const DEFAULT_FORM_VALUES = {
+  selectedDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+  weeklyMileage: 20,
+  experienceLevel: 'beginner'
+};
+
+// Utility functions
+const getDefaultTargetDate = () => {
+  const today = new Date();
+  const futureDate = new Date(today);
+  futureDate.setDate(today.getDate() + (DEFAULT_TRAINING_WEEKS * 7));
+  return futureDate.toISOString().split('T')[0];
+};
+
+const getMinTrainingDays = (planType) => planType === 'marathon' ? 2 : 1;
+
+// Custom hook for button state management
+const useButtonState = () => {
+  const [buttonState, setButtonState] = useState(BUTTON_STATES.INITIAL);
+  
+  const markFormChanged = useCallback(() => {
+    if (buttonState === BUTTON_STATES.PLAN_GENERATED) {
+      setButtonState(BUTTON_STATES.FORM_CHANGED);
+    }
+  }, [buttonState]);
+
+  const markPlanGenerated = useCallback(() => {
+    setButtonState(BUTTON_STATES.PLAN_GENERATED);
+  }, []);
+
+  return { buttonState, markFormChanged, markPlanGenerated };
+};
+
+// Custom hook for form state management
+const useFormState = (markFormChanged) => {
+  const [selectedDays, setSelectedDays] = useState(DEFAULT_FORM_VALUES.selectedDays);
+  const [weeklyMileage, setWeeklyMileage] = useState(DEFAULT_FORM_VALUES.weeklyMileage);
+  const [targetDate, setTargetDate] = useState(getDefaultTargetDate);
+  const [experienceLevel, setExperienceLevel] = useState(DEFAULT_FORM_VALUES.experienceLevel);
+
+  const handleTargetDateChange = useCallback((e) => {
+    setTargetDate(e.target.value);
+    markFormChanged();
+  }, [markFormChanged]);
+
+  const handleExperienceLevelChange = useCallback((e) => {
+    setExperienceLevel(e.target.value);
+    markFormChanged();
+  }, [markFormChanged]);
+
+  const handleWeeklyMileageChange = useCallback((e) => {
+    setWeeklyMileage(Number(e.target.value));
+    markFormChanged();
+  }, [markFormChanged]);
+
+  const handleDayToggle = useCallback((day) => {
+    setSelectedDays(prev =>
+      prev.includes(day)
+        ? prev.filter(d => d !== day)
+        : [...prev, day]
+    );
+    markFormChanged();
+  }, [markFormChanged]);
+
+  const updateFormFromPreferences = useCallback((preferences) => {
+    if (preferences) {
+      setSelectedDays(preferences.preferredDays || DEFAULT_FORM_VALUES.selectedDays);
+      setExperienceLevel(preferences.experienceLevel || DEFAULT_FORM_VALUES.experienceLevel);
+      setWeeklyMileage(preferences.weeklyMileage || DEFAULT_FORM_VALUES.weeklyMileage);
+    }
+  }, []);
+
+  return {
+    selectedDays,
+    weeklyMileage,
+    targetDate,
+    experienceLevel,
+    handleTargetDateChange,
+    handleExperienceLevelChange,
+    handleWeeklyMileageChange,
+    handleDayToggle,
+    updateFormFromPreferences
+  };
+};
+
+// Custom hook for preferences management
+const usePreferences = (user, updateFormFromPreferences, setUseMiles) => {
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(false);
+  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
+
+  const loadUserPreferences = useCallback(async () => {
+    if (!user) return;
+    
+    setIsLoadingPreferences(true);
+    try {
+      const { preferences } = await preferencesAPI.getPreferences(user.uid);
+      if (preferences) {
+        updateFormFromPreferences(preferences);
+        setUseMiles(preferences.distanceUnit === 'mi');
+      }
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    } finally {
+      setIsLoadingPreferences(false);
+    }
+  }, [user, updateFormFromPreferences, setUseMiles]);
+
+  const saveUserPreferences = useCallback(async (preferences) => {
+    if (!user) return;
+    
+    setIsSavingPreferences(true);
+    try {
+      await preferencesAPI.savePreferences(user.uid, preferences);
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+    } finally {
+      setIsSavingPreferences(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadUserPreferences();
+  }, [loadUserPreferences]);
+
+  return { isLoadingPreferences, isSavingPreferences, saveUserPreferences };
+};
+
+// Main component
 export default function PlanForm({ onSubmit, planType = 'marathon' }) {
   const { useMiles, setUseMiles } = useUnit();
   const { user } = useAuth();
-  const [planGenerated, setPlanGenerated] = useState(false);
-  const [isLoadingPreferences, setIsLoadingPreferences] = useState(false);
-  const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   
-  // Initialize state from localStorage if available, otherwise use defaults
-  const [selectedDays, setSelectedDays] = useState(() => {
-    if (typeof window !== 'undefined') {
-      // const saved = localStorage.getItem('preferredRunningDays');
-      // return saved ? JSON.parse(saved) : ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    }
-    return ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-  });
+  const { buttonState, markFormChanged, markPlanGenerated } = useButtonState();
+  
+  const {
+    selectedDays,
+    weeklyMileage,
+    targetDate,
+    experienceLevel,
+    handleTargetDateChange,
+    handleExperienceLevelChange,
+    handleWeeklyMileageChange,
+    handleDayToggle,
+    updateFormFromPreferences
+  } = useFormState(markFormChanged);
 
-  const [weeklyMileage, setWeeklyMileage] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('weeklyMileage');
-      return saved ? parseInt(saved) : 20;
-    }
-    return 20;
-  });
+  const { isLoadingPreferences, isSavingPreferences, saveUserPreferences } = usePreferences(
+    user, 
+    updateFormFromPreferences, 
+    setUseMiles
+  );
 
-  // Save to localStorage whenever values change
-  useEffect(() => {
-    localStorage.setItem('preferredRunningDays', JSON.stringify(selectedDays));
-  }, [selectedDays]);
-
-  useEffect(() => {
-    localStorage.setItem('weeklyMileage', weeklyMileage.toString());
-  }, [weeklyMileage]);
-
-  const [targetDate, setTargetDate] = useState(() => {
-    const today = new Date();
-    const futureDate = new Date(today);
-    futureDate.setDate(today.getDate() + 126); // 18 weeks * 7 days
-    
-    // Format as YYYY-MM-DD for the date input value
-    return futureDate.toISOString().split('T')[0];
-  });
-
-  const [experienceLevel, setExperienceLevel] = useState('beginner');
-
-  // Load user preferences when user logs in
-  useEffect(() => {
-    console.log('useEffect triggered, user:', user ? user.uid : 'null');
-    
-    const loadUserPreferences = async () => {
-      if (!user) {
-        console.log('No user logged in, skipping preference load');
-        return;
-      }
-      
-      console.log('Loading preferences for user:', user.uid);
-      setIsLoadingPreferences(true);
-      try {
-        const { preferences } = await preferencesAPI.getPreferences(user.uid);
-        console.log('Received preferences:', preferences);
-        
-        if (preferences) {
-          console.log('Applying preferences to form');
-          // Restore user preferences
-          setSelectedDays(preferences.preferredDays || ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']);
-          setExperienceLevel(preferences.experienceLevel || 'beginner');
-          setWeeklyMileage(preferences.weeklyMileage || 20);
-          setUseMiles(preferences.distanceUnit === 'mi');
-        } else {
-          console.log('No preferences found for user');
-        }
-      } catch (error) {
-        console.error('Failed to load preferences:', error);
-      } finally {
-        setIsLoadingPreferences(false);
-      }
-    };
-
-    loadUserPreferences();
-  }, [user, setUseMiles]);
+  const handleUnitChange = useCallback((useMilesValue) => {
+    setUseMiles(useMilesValue);
+    markFormChanged();
+  }, [setUseMiles, markFormChanged]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,50 +194,57 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
       distanceUnit: useMiles ? 'mi' : 'km',
     };
 
-    if (planGenerated && user) {
-      console.log('Saving preferences:', formData);
-      // Save preferences mode
-      setIsSavingPreferences(true);
-      try {
-        await preferencesAPI.savePreferences(user.uid, {
-          preferredDays: selectedDays,
-          experienceLevel,
-          weeklyMileage,
-          distanceUnit: useMiles ? 'mi' : 'km'
-        });
-        console.log('Preferences saved successfully!');
-      } catch (error) {
-        console.error('Failed to save preferences:', error);
-      } finally {
-        setIsSavingPreferences(false);
-      }
-    } else {
-      // Generate plan mode
-      onSubmit(formData);
-      setPlanGenerated(true);
+    // Generate the plan first
+    onSubmit(formData);
+    markPlanGenerated();
+
+    // Save preferences if user is logged in
+    if (user) {
+      await saveUserPreferences({
+        preferredDays: selectedDays,
+        experienceLevel,
+        weeklyMileage,
+        distanceUnit: useMiles ? 'mi' : 'km'
+      });
     }
   };
 
-  const handleDayToggle = (day) => {
-    setSelectedDays(prev =>
-      prev.includes(day)
-        ? prev.filter(d => d !== day)
-        : [...prev, day]
-    );
+  // Button logic
+  const minTrainingDays = getMinTrainingDays(planType);
+  const hasMinimumDays = selectedDays.length >= minTrainingDays;
+
+  const getButtonText = () => {
+    if (isLoadingPreferences) return 'Loading...';
+    if (isSavingPreferences) return 'Saving Preferences & Updating Plan...';
+    
+    switch (buttonState) {
+      case BUTTON_STATES.INITIAL:
+        return planType === 'marathon' ? 'Generate Your Marathon Plan' : 'Generate Your Return to Running Plan';
+      case BUTTON_STATES.FORM_CHANGED:
+        return 'Save Preferences and Update Plan';
+      case BUTTON_STATES.PLAN_GENERATED:
+      default:
+        return 'Save Preferences and Update Plan';
+    }
   };
 
-  const MIN_TRAINING_DAYS = planType === 'marathon' ? 2 : 1;
-  const hasMinimumDays = selectedDays.length >= MIN_TRAINING_DAYS;
+  const isButtonDisabled = () => {
+    return !hasMinimumDays || 
+           isLoadingPreferences || 
+           isSavingPreferences || 
+           (buttonState === BUTTON_STATES.PLAN_GENERATED);
+  };
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
+      {/* Preferred Running Days */}
       <div className={styles.formGroup}>
-        <label>Preferred Running Days
+        <label>
+          Preferred Running Days
           <span className={`${styles.helperText} ${hasMinimumDays ? styles.helperTextHidden : ''}`}>
-            select at least {MIN_TRAINING_DAYS} {MIN_TRAINING_DAYS === 1 ? 'day' : 'days'}
+            select at least {minTrainingDays} {minTrainingDays === 1 ? 'day' : 'days'}
           </span>
         </label>
-
         <div className={styles.checkboxGroup}>
           {DAYS_OF_WEEK.map(({ id, label }) => (
             <div key={id} className={styles.checkboxItem}>
@@ -168,6 +260,7 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
         </div>
       </div>
 
+      {/* Target Date */}
       <div className={styles.formGroup}>
         <label htmlFor="targetDate">
           {planType === 'marathon' ? 'Target Marathon Date' : 'Full Strength Target Date'}
@@ -176,16 +269,15 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
           type="date"
           id="targetDate"
           value={targetDate}
-          onChange={(e) => setTargetDate(e.target.value)}
+          onChange={handleTargetDateChange}
           required
           className={styles.formInput}
         />
       </div>
+
+      {/* Distance Units */}
       <div className={styles.formGroup}>
-        <label htmlFor="weeklyMileage">
-            Distance Units
-        </label>
-      
+        <label>Distance Units</label>
         <div className={`${styles.formInput} ${styles.distanceUnitInput}`}>
           <label className={styles.radioLabel}>
             <input
@@ -193,7 +285,7 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
               name="distanceUnit"
               value="mi"
               checked={useMiles}
-              onChange={() => setUseMiles(true)}
+              onChange={() => handleUnitChange(true)}
             />
             mi
           </label>
@@ -203,12 +295,14 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
               name="distanceUnit"
               value="km"
               checked={!useMiles}
-              onChange={() => setUseMiles(false)}
+              onChange={() => handleUnitChange(false)}
             />
             km
           </label>
         </div>
       </div>
+
+      {/* Weekly Mileage (Return from Injury only) */}
       {planType === 'return-from-injury' && (
         <div className={styles.formGroup}>
           <label htmlFor="weeklyMileage">Previous Weekly Mileage</label>
@@ -216,12 +310,12 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
             <select
               id="weeklyMileage"
               value={weeklyMileage}
-              onChange={(e) => setWeeklyMileage(Number(e.target.value))}
+              onChange={handleWeeklyMileageChange}
               className={styles.mileageSelect}
             >
               {WEEKLY_MILEAGE_OPTIONS.map(miles => (
                 <option key={miles} value={miles}>
-                  {useMiles ? miles : Math.round(miles * milesToKmFactor)} {useMiles ? 'mi' : 'km'}
+                  {useMiles ? miles : Math.round(miles * MILES_TO_KM_FACTOR)} {useMiles ? 'mi' : 'km'}
                 </option>
               ))}
             </select>
@@ -229,13 +323,14 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
         </div>
       )}
 
+      {/* Experience Level (Marathon only) */}
       {planType === 'marathon' && (
         <div className={styles.formGroup}>
           <label htmlFor="experienceLevel">Running Experience</label>
           <select
             id="experienceLevel"
             value={experienceLevel}
-            onChange={(e) => setExperienceLevel(e.target.value)}
+            onChange={handleExperienceLevelChange}
             className={styles.formInput}
           >
             <option value="beginner">Beginner</option>
@@ -245,15 +340,13 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
         </div>
       )}
 
+      {/* Submit Button */}
       <button 
         type="submit" 
-        className={`${styles.button} ${!hasMinimumDays ? styles.buttonDisabled : ''}`}
-        disabled={!hasMinimumDays || isLoadingPreferences || isSavingPreferences}
+        className={`${styles.button} ${isButtonDisabled() ? styles.buttonDisabled : ''}`}
+        disabled={isButtonDisabled()}
       >
-        {isLoadingPreferences ? 'Loading...' : 
-         isSavingPreferences ? 'Saving...' :
-         (planGenerated && user) ? 'Save Plan Changes' : 
-         `Generate ${planType === 'marathon' ? 'Marathon' : 'Return From Injury'} Plan`}
+        {getButtonText()}
       </button>
     </form>
   );
