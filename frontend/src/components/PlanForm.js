@@ -3,6 +3,7 @@ import styles from '../styles/PlanForm.module.css';
 import { useUnit } from '../context/UnitContext';
 import { useAuth } from '../context/AuthContext';
 import { preferencesAPI } from '../services/api';
+import ColdStartLoading from './ColdStartLoading';
 
 // Constants
 const DAYS_OF_WEEK = [
@@ -114,13 +115,20 @@ const useFormState = (markFormChanged) => {
 const usePreferences = (user, updateFormFromPreferences, setUseMiles) => {
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
+  const [isColdStartLoading, setIsColdStartLoading] = useState(false);
 
   const loadUserPreferences = useCallback(async () => {
     if (!user) return;
     
     setIsLoadingPreferences(true);
+    setIsColdStartLoading(false);
+    
     try {
-      const { preferences } = await preferencesAPI.getPreferences(user.uid);
+      const { preferences } = await preferencesAPI.getPreferences(
+        user.uid,
+        () => setIsColdStartLoading(true) // Cold start callback
+      );
+      
       if (preferences) {
         updateFormFromPreferences(preferences);
         setUseMiles(preferences.distanceUnit === 'mi');
@@ -129,6 +137,7 @@ const usePreferences = (user, updateFormFromPreferences, setUseMiles) => {
       console.error('Failed to load preferences:', error);
     } finally {
       setIsLoadingPreferences(false);
+      setIsColdStartLoading(false);
     }
   }, [user, updateFormFromPreferences, setUseMiles]);
 
@@ -149,7 +158,7 @@ const usePreferences = (user, updateFormFromPreferences, setUseMiles) => {
     loadUserPreferences();
   }, [loadUserPreferences]);
 
-  return { isLoadingPreferences, isSavingPreferences, saveUserPreferences };
+  return { isLoadingPreferences, isSavingPreferences, isColdStartLoading, saveUserPreferences };
 };
 
 // Main component
@@ -171,7 +180,7 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
     updateFormFromPreferences
   } = useFormState(markFormChanged);
 
-  const { isLoadingPreferences, isSavingPreferences, saveUserPreferences } = usePreferences(
+  const { isLoadingPreferences, isSavingPreferences, isColdStartLoading, saveUserPreferences } = usePreferences(
     user, 
     updateFormFromPreferences, 
     setUseMiles
@@ -236,118 +245,128 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
-      {/* Preferred Running Days */}
-      <div className={styles.formGroup}>
-        <label>
-          Preferred Running Days
-          <span className={`${styles.helperText} ${hasMinimumDays ? styles.helperTextHidden : ''}`}>
-            select at least {minTrainingDays} {minTrainingDays === 1 ? 'day' : 'days'}
-          </span>
-        </label>
-        <div className={styles.checkboxGroup}>
-          {DAYS_OF_WEEK.map(({ id, label }) => (
-            <div key={id} className={styles.checkboxItem}>
-              <input
-                type="checkbox"
-                id={id}
-                checked={selectedDays.includes(id)}
-                onChange={() => handleDayToggle(id)}
-              />
-              <label htmlFor={id}>{label}</label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Target Date */}
-      <div className={styles.formGroup}>
-        <label htmlFor="targetDate">
-          {planType === 'marathon' ? 'Target Marathon Date' : 'Full Strength Target Date'}
-        </label>
-        <input
-          type="date"
-          id="targetDate"
-          value={targetDate}
-          onChange={handleTargetDateChange}
-          required
-          className={styles.formInput}
-        />
-      </div>
-
-      {/* Distance Units */}
-      <div className={styles.formGroup}>
-        <label>Distance Units</label>
-        <div className={`${styles.formInput} ${styles.distanceUnitInput}`}>
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              name="distanceUnit"
-              value="mi"
-              checked={useMiles}
-              onChange={() => handleUnitChange(true)}
-            />
-            mi
-          </label>
-          <label className={styles.radioLabel}>
-            <input
-              type="radio"
-              name="distanceUnit"
-              value="km"
-              checked={!useMiles}
-              onChange={() => handleUnitChange(false)}
-            />
-            km
-          </label>
-        </div>
-      </div>
-
-      {/* Weekly Mileage (Return from Injury only) */}
-      {planType === 'return-from-injury' && (
+    <div className={styles.formContainer}>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        {/* Preferred Running Days */}
         <div className={styles.formGroup}>
-          <label htmlFor="weeklyMileage">Previous Weekly Mileage</label>
-          <div className={styles.mileageContainer}>
-            <select
-              id="weeklyMileage"
-              value={weeklyMileage}
-              onChange={handleWeeklyMileageChange}
-              className={styles.mileageSelect}
-            >
-              {WEEKLY_MILEAGE_OPTIONS.map(miles => (
-                <option key={miles} value={miles}>
-                  {useMiles ? miles : Math.round(miles * MILES_TO_KM_FACTOR)} {useMiles ? 'mi' : 'km'}
-                </option>
-              ))}
-            </select>
+          <label>
+            Preferred Running Days
+            <span className={`${styles.helperText} ${hasMinimumDays ? styles.helperTextHidden : ''}`}>
+              select at least {minTrainingDays} {minTrainingDays === 1 ? 'day' : 'days'}
+            </span>
+          </label>
+          <div className={styles.checkboxGroup}>
+            {DAYS_OF_WEEK.map(({ id, label }) => (
+              <div key={id} className={styles.checkboxItem}>
+                <input
+                  type="checkbox"
+                  id={id}
+                  checked={selectedDays.includes(id)}
+                  onChange={() => handleDayToggle(id)}
+                  disabled={isColdStartLoading}
+                />
+                <label htmlFor={id}>{label}</label>
+              </div>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* Experience Level (Marathon only) */}
-      {planType === 'marathon' && (
+        {/* Target Date */}
         <div className={styles.formGroup}>
-          <label htmlFor="experienceLevel">Running Experience</label>
-          <select
-            id="experienceLevel"
-            value={experienceLevel}
-            onChange={handleExperienceLevelChange}
+          <label htmlFor="targetDate">
+            {planType === 'marathon' ? 'Target Marathon Date' : 'Full Strength Target Date'}
+          </label>
+          <input
+            type="date"
+            id="targetDate"
+            value={targetDate}
+            onChange={handleTargetDateChange}
+            required
             className={styles.formInput}
-          >
-            <option value="beginner">Beginner</option>
-            <option value="intermediate">Intermediate</option>
-            <option value="advanced">Advanced</option>
-          </select>
+            disabled={isColdStartLoading}
+          />
         </div>
-      )}
 
-      {/* Submit Button */}
-      <button 
-        type="submit" 
-        className={`${styles.button} ${isButtonDisabled() ? styles.buttonDisabled : ''}`}
-        disabled={isButtonDisabled()}
-      >
-        {getButtonText()}
-      </button>
-    </form>
+        {/* Distance Units */}
+        <div className={styles.formGroup}>
+          <label>Distance Units</label>
+          <div className={`${styles.formInput} ${styles.distanceUnitInput}`}>
+            <label className={styles.radioLabel}>
+              <input
+                type="radio"
+                name="distanceUnit"
+                value="mi"
+                checked={useMiles}
+                onChange={() => handleUnitChange(true)}
+                disabled={isColdStartLoading}
+              />
+              mi
+            </label>
+            <label className={styles.radioLabel}>
+              <input
+                type="radio"
+                name="distanceUnit"
+                value="km"
+                checked={!useMiles}
+                onChange={() => handleUnitChange(false)}
+                disabled={isColdStartLoading}
+              />
+              km
+            </label>
+          </div>
+        </div>
+
+        {/* Weekly Mileage (Return from Injury only) */}
+        {planType === 'return-from-injury' && (
+          <div className={styles.formGroup}>
+            <label htmlFor="weeklyMileage">Previous Weekly Mileage</label>
+            <div className={styles.mileageContainer}>
+              <select
+                id="weeklyMileage"
+                value={weeklyMileage}
+                onChange={handleWeeklyMileageChange}
+                className={styles.mileageSelect}
+                disabled={isColdStartLoading}
+              >
+                {WEEKLY_MILEAGE_OPTIONS.map(miles => (
+                  <option key={miles} value={miles}>
+                    {useMiles ? miles : Math.round(miles * MILES_TO_KM_FACTOR)} {useMiles ? 'mi' : 'km'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+
+        {/* Experience Level (Marathon only) */}
+        {planType === 'marathon' && (
+          <div className={styles.formGroup}>
+            <label htmlFor="experienceLevel">Running Experience</label>
+            <select
+              id="experienceLevel"
+              value={experienceLevel}
+              onChange={handleExperienceLevelChange}
+              className={styles.formInput}
+              disabled={isColdStartLoading}
+            >
+              <option value="beginner">Beginner</option>
+              <option value="intermediate">Intermediate</option>
+              <option value="advanced">Advanced</option>
+            </select>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <button 
+          type="submit" 
+          className={`${styles.button} ${isButtonDisabled() || isColdStartLoading ? styles.buttonDisabled : ''}`}
+          disabled={isButtonDisabled() || isColdStartLoading}
+        >
+          {getButtonText()}
+        </button>
+      </form>
+      
+      <ColdStartLoading isVisible={isColdStartLoading} />
+    </div>
   );
 } 
