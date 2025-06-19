@@ -47,22 +47,7 @@ export default function Navigation() {
         >
           Rerunnr
         </Link>
-        <div className={styles.navContent}>
-          <div className={styles.navLinks}>
-            <Link 
-              href="/" 
-              className={`${styles.navLink} ${currentPath === '/' ? styles.active : ''}`}
-            >
-              Marathon Plan
-            </Link>
-            <Link 
-              href="/return-from-injury" 
-              className={`${styles.navLink} ${currentPath === '/return-from-injury' ? styles.active : ''}`}
-            >
-              Return From Injury
-            </Link>
-          </div>
-          <div className={styles.authSection}>
+        <div className={styles.authSection}>
             {!loading && (
               <>
                 {user && (
@@ -84,6 +69,21 @@ export default function Navigation() {
                 </button>
               </>
             )}
+          </div>
+        <div className={styles.navContent}>
+          <div className={styles.navLinks}>
+            <Link 
+              href="/" 
+              className={`${styles.navLink} ${currentPath === '/' ? styles.active : ''}`}
+            >
+              Marathon Plan
+            </Link>
+            <Link 
+              href="/return-from-injury" 
+              className={`${styles.navLink} ${currentPath === '/return-from-injury' ? styles.active : ''}`}
+            >
+              Return From Injury
+            </Link>
           </div>
         </div>
       </div>

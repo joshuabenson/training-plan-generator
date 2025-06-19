@@ -30,36 +30,17 @@ export const preferencesAPI = {
 
   // Get user preferences with cold start detection
   getPreferences: async (userId, onColdStartDetected) => {
-    const fetchPromise = fetch(`${API_BASE_URL}/preferences/${userId}`);
-    const timeoutPromise = createTimeoutPromise(3000); // 3 second timeout
-    
-    try {
-      // Race between the fetch and the timeout
-      const response = await Promise.race([fetchPromise, timeoutPromise]);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch preferences');
-      }
-      
-      return response.json();
-    } catch (error) {
-      if (error.message === 'COLD_START_TIMEOUT') {
-        // Notify that cold start was detected
-        if (onColdStartDetected) {
-          onColdStartDetected();
-        }
-        
-        // Continue waiting for the actual response
-        const response = await fetchPromise;
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch preferences');
-        }
-        
-        return response.json();
-      }
-      
-      throw error;
+    // Show cold start loading immediately
+    if (onColdStartDetected) {
+      onColdStartDetected();
     }
+    
+    const response = await fetch(`${API_BASE_URL}/preferences/${userId}`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch preferences');
+    }
+    
+    return response.json();
   }
 }; 
