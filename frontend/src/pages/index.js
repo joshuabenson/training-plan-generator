@@ -42,7 +42,11 @@ export default function Home() {
       
       <div className={styles.content}>
         <div className={styles.formContainer}>
-          <PlanForm onSubmit={handlePlanGeneration} planType="marathon" />
+          <PlanForm 
+            onSubmit={handlePlanGeneration} 
+            planType="marathon" 
+            hasPlan={!!marathonPlan}
+          />
         </div>
         
         {isLoading ? (

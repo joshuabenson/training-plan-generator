@@ -42,7 +42,11 @@ export default function ReturnFromInjury() {
       
       <div className={styles.content}>
         <div className={styles.formContainer}>
-          <PlanForm onSubmit={handlePlanGeneration} planType="return-from-injury" />
+          <PlanForm 
+            onSubmit={handlePlanGeneration} 
+            planType="return-from-injury" 
+            hasPlan={!!injuryPlan}
+          />
         </div>
         
         {isLoading ? (
