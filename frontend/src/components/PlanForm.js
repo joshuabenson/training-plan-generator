@@ -19,6 +19,7 @@ const DAYS_OF_WEEK = [
 const WEEKLY_MILEAGE_OPTIONS = [10, 15, 20, 25, 30, 35, 40];
 const MILES_TO_KM_FACTOR = 1.60934;
 const DEFAULT_TRAINING_WEEKS = 18;
+const MOBILE_BREAKPOINT = 768;
 
 const BUTTON_STATES = {
   INITIAL: 'initial',
@@ -30,6 +31,32 @@ const DEFAULT_FORM_VALUES = {
   selectedDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
   weeklyMileage: 20,
   experienceLevel: 'beginner'
+};
+
+// Custom hook for mobile detection
+const useMobileDetection = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      if (typeof window !== 'undefined') {
+        setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
+      }
+    };
+
+    // Check on mount
+    checkMobile();
+
+    // Add event listener
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', checkMobile);
+
+      // Cleanup
+      return () => window.removeEventListener('resize', checkMobile);
+    }
+  }, []);
+
+  return isMobile;
 };
 
 // Utility functions
@@ -162,9 +189,10 @@ const usePreferences = (user, updateFormFromPreferences, setUseMiles) => {
 };
 
 // Main component
-export default function PlanForm({ onSubmit, planType = 'marathon' }) {
+export default function PlanForm({ onSubmit, planType = 'marathon', hasPlan = false }) {
   const { useMiles, setUseMiles } = useUnit();
   const { user } = useAuth();
+  const isMobile = useMobileDetection();
   
   const { buttonState, markFormChanged, markPlanGenerated } = useButtonState();
   
@@ -185,6 +213,20 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
     updateFormFromPreferences, 
     setUseMiles
   );
+
+  // State for mobile collapsible form
+  const [isFormExpanded, setIsFormExpanded] = useState(!isMobile || !hasPlan);
+
+  // Auto-collapse form on mobile when a plan is generated, and ensure it's expanded on desktop
+  useEffect(() => {
+    console.log('isMobile', isMobile);
+    console.log('hasPlan', hasPlan);
+    if (isMobile && hasPlan) {
+      setIsFormExpanded(false);
+    } else if (!isMobile) {
+      setIsFormExpanded(true);
+    }
+  }, [isMobile, hasPlan]);
 
   const handleUnitChange = useCallback((useMilesValue) => {
     setUseMiles(useMilesValue);
@@ -216,6 +258,11 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
         distanceUnit: useMiles ? 'mi' : 'km'
       });
     }
+
+    // Collapse the form on mobile after submission
+    if (isMobile) {
+      setIsFormExpanded(false);
+    }
   };
 
   // Button logic
@@ -244,8 +291,48 @@ export default function PlanForm({ onSubmit, planType = 'marathon' }) {
            (buttonState === BUTTON_STATES.PLAN_GENERATED);
   };
 
+  // Mobile collapsed button handler
+  const handleExpandForm = () => {
+    setIsFormExpanded(true);
+  };
+
+  // Show collapsed button on mobile when plan exists
+  if (isMobile && hasPlan && !isFormExpanded) {
+    return (
+      <div className={styles.formContainer}>
+        <button 
+          onClick={handleExpandForm}
+          className={`${styles.button} ${styles.expandButton}`}
+        >
+          <span>Modify My Plan Preferences</span>
+          <svg 
+            className={styles.expandIcon} 
+            width="20" 
+            height="20" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className={styles.formContainer}>
+    <div className={`${styles.formContainer} ${isMobile && hasPlan ? styles.formExpanded : ''}`}>
       <form onSubmit={handleSubmit} className={styles.form}>
         {/* Preferred Running Days */}
         <div className={styles.formGroup}>
