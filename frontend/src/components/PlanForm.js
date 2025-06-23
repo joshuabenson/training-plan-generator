@@ -335,6 +335,12 @@ export default function PlanForm({ onSubmit, planType = 'marathon', hasPlan = fa
     <div className={`${styles.formContainer} ${isMobile && hasPlan ? styles.formExpanded : ''}`}>
       <form onSubmit={handleSubmit} className={styles.form}>
         {/* Preferred Running Days */}
+        {!hasPlan && (
+          <label><h3 className={styles.title}>
+            {planType === 'marathon' ? 'Create Your Personalized Marathon Training Plan' : 'Create Your Personalized Return to Running Plan'}
+          </h3></label>
+        )}
+        
         <div className={styles.formGroup}>
           <label>
             Preferred Running Days

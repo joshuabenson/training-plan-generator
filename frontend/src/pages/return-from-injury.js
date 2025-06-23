@@ -38,8 +38,7 @@ export default function ReturnFromInjury() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Injury Recovery Plan Preview</h1>
-      
+
       <div className={styles.content}>
         <div className={styles.formContainer}>
           <PlanForm 
@@ -55,7 +54,7 @@ export default function ReturnFromInjury() {
           </div>
         ) : injuryPlan && (
           <div className={styles.planContainer}>
-            <TrainingPlan plan={injuryPlan} />
+            <TrainingPlan plan={injuryPlan} planType="return-from-injury" />
           </div>
         )}
       </div>
