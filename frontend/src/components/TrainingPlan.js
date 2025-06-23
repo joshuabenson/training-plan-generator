@@ -4,7 +4,7 @@ import { useUnit } from '../context/UnitContext';
 
 const milesToKmFactor = 1.60934;
 
-export default function TrainingPlan({ plan }) {
+export default function TrainingPlan({ plan, planType = 'marathon' }) {
   const { useMiles } = useUnit();
 
   // Safely parse dates
@@ -61,7 +61,7 @@ export default function TrainingPlan({ plan }) {
 
   return (
     <div className={styles.container}>
-      <h2>Your Training Plan</h2>
+      <h2>Your {planType === 'marathon' ? 'Marathon' : 'Return to Running'} Training Plan</h2>
       
       <div className={styles.dates}>
         <p>

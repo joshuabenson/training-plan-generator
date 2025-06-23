@@ -38,7 +38,6 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Marathon Plan Preview</h1>
       
       <div className={styles.content}>
         <div className={styles.formContainer}>
@@ -55,7 +54,7 @@ export default function Home() {
           </div>
         ) : marathonPlan && (
           <div className={styles.planContainer}>
-            <TrainingPlan plan={marathonPlan} />
+            <TrainingPlan plan={marathonPlan} planType="marathon" />
           </div>
         )}
       </div>
