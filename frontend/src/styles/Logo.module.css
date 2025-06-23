@@ -1,0 +1,62 @@
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.logo {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: white;
+  text-decoration: none;
+  background: linear-gradient(
+    135deg,
+    #60A5FA 0%,
+    #34D399 35%,
+    #60A5FA 50%,
+    #34D399 85%,
+    #60A5FA 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+  padding: 0.5rem 0;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.logoShimmer {
+  animation: shimmer 2.5s ease-out;
+}
+
+.preview {
+  color: #DC2626 !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: #DC2626 !important;
+  background-clip: initial !important;
+  font-weight: 800;
+  font-size: 0.5em;
+  text-transform: lowercase;
+  margin-left: 0.3rem;
+  display: inline;
+  white-space: nowrap;
+}
+/* 
+.preview::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: previewGlow 3s ease-in-out infinite;
+  z-index: -1;
+} */
