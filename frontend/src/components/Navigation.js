@@ -22,29 +22,7 @@ export default function Navigation() {
     <nav className={styles.nav}>
       <div className={styles.navContainer}>
         <Logo />
-        <div className={styles.authSection}>
-            {!loading && (
-              <>
-                {user && (
-                  <div className={styles.userInfo}>
-                    <img 
-                      src={user.photoURL || '/default-avatar.png'} 
-                      alt="Profile" 
-                      className={styles.avatar}
-                    />
-                    <span className={styles.userName}>{user.displayName}</span>
-                  </div>
-                )}
-                <button 
-                  onClick={handleAuthAction}
-                  className={styles.authButton}
-                  disabled={loading}
-                >
-                  {user ? 'Sign Out' : 'Sign In'}
-                </button>
-              </>
-            )}
-          </div>
+        
         <div className={styles.navContent}>
           <div className={styles.navLinks}>
             <Link 
@@ -60,6 +38,30 @@ export default function Navigation() {
               Return From Injury
             </Link>
           </div>
+        </div>
+
+        <div className={styles.authSection}>
+          {!loading && (
+            <>
+              {user && (
+                <div className={styles.userInfo}>
+                  <img 
+                    src={user.photoURL || '/default-avatar.png'} 
+                    alt="Profile" 
+                    className={styles.avatar}
+                  />
+                  <span className={styles.userName}>{user.displayName}</span>
+                </div>
+              )}
+              <button 
+                onClick={handleAuthAction}
+                className={styles.authButton}
+                disabled={loading}
+              >
+                {user ? 'Sign Out' : 'Sign In'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </nav>
