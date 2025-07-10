@@ -92,9 +92,21 @@ const useFormState = (markFormChanged) => {
   const [weeklyMileage, setWeeklyMileage] = useState(DEFAULT_FORM_VALUES.weeklyMileage);
   const [targetDate, setTargetDate] = useState(getDefaultTargetDate);
   const [experienceLevel, setExperienceLevel] = useState(DEFAULT_FORM_VALUES.experienceLevel);
+  const [raceDate, setRaceDate] = useState(null);
+  const [startDate, setStartDate] = useState(null);
 
   const handleTargetDateChange = useCallback((e) => {
-    setTargetDate(e.target.value);
+    const selectedDate = e.target.value;
+    setTargetDate(selectedDate);
+    setRaceDate(selectedDate);
+    
+    // Calculate the nearest Monday for start date
+    const date = new Date(selectedDate);
+    const daysUntilMonday = (8 - date.getDay()) % 7;
+    const nearestMonday = new Date(date);
+    nearestMonday.setDate(date.getDate() - (18 * 7) + daysUntilMonday); // 18 weeks before race
+    setStartDate(nearestMonday.toISOString().split('T')[0]);
+    
     markFormChanged();
   }, [markFormChanged]);
 
@@ -122,6 +134,13 @@ const useFormState = (markFormChanged) => {
       setSelectedDays(preferences.preferredDays || DEFAULT_FORM_VALUES.selectedDays);
       setExperienceLevel(preferences.experienceLevel || DEFAULT_FORM_VALUES.experienceLevel);
       setWeeklyMileage(preferences.weeklyMileage || DEFAULT_FORM_VALUES.weeklyMileage);
+      if (preferences.raceDate) {
+        setRaceDate(preferences.raceDate);
+        setTargetDate(preferences.raceDate);
+      }
+      if (preferences.startDate) {
+        setStartDate(preferences.startDate);
+      }
     }
   }, []);
 
@@ -130,6 +149,8 @@ const useFormState = (markFormChanged) => {
     weeklyMileage,
     targetDate,
     experienceLevel,
+    raceDate,
+    startDate,
     handleTargetDateChange,
     handleExperienceLevelChange,
     handleWeeklyMileageChange,
@@ -201,6 +222,8 @@ export default function PlanForm({ onSubmit, planType = 'marathon', hasPlan = fa
     weeklyMileage,
     targetDate,
     experienceLevel,
+    raceDate,
+    startDate,
     handleTargetDateChange,
     handleExperienceLevelChange,
     handleWeeklyMileageChange,
@@ -243,6 +266,8 @@ export default function PlanForm({ onSubmit, planType = 'marathon', hasPlan = fa
       planType,
       weeklyMileage,
       distanceUnit: useMiles ? 'mi' : 'km',
+      raceDate,
+      startDate
     };
 
     // Generate the plan first
@@ -255,7 +280,9 @@ export default function PlanForm({ onSubmit, planType = 'marathon', hasPlan = fa
         preferredDays: selectedDays,
         experienceLevel,
         weeklyMileage,
-        distanceUnit: useMiles ? 'mi' : 'km'
+        distanceUnit: useMiles ? 'mi' : 'km',
+        raceDate,
+        startDate
       });
     }
 
