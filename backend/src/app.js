@@ -282,7 +282,7 @@ app.post('/generate-plan', async (req, res) => {
 app.post('/save-preferences', async (req, res) => {
     console.log('Saving preferences:', req.body);
     try {
-        const { userId, preferredDays, experienceLevel, weeklyMileage, distanceUnit } = req.body;
+        const { userId, preferredDays, experienceLevel, weeklyMileage, distanceUnit, raceDate, startDate } = req.body;
         
         // Validate required fields
         if (!userId) {
@@ -295,6 +295,8 @@ app.post('/save-preferences', async (req, res) => {
             experienceLevel,
             weeklyMileage,
             distanceUnit,
+            raceDate,
+            startDate,
             updatedAt: new Date()
         };
         
