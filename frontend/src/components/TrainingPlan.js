@@ -9,12 +9,15 @@ export default function TrainingPlan({ plan, planType = 'marathon' }) {
 
   // Safely parse dates
   const formatDate = (dateString) => {
-    try {
-      return format(parseISO(dateString), 'MMMM d, yyyy');
-    } catch (error) {
-      console.error('Error parsing date:', error);
-      return 'Invalid Date';
-    }
+    const date = new Date(dateString);
+    // Add timezone offset to keep the date consistent
+    const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+    const localDate = new Date(date.getTime() + userTimezoneOffset);
+    return localDate.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
   };
 
   // Get workout type for styling
@@ -59,19 +62,15 @@ export default function TrainingPlan({ plan, planType = 'marathon' }) {
   // Debug the structure
   console.log('Plan structure:', JSON.stringify(plan, null, 2).substring(0, 500));
 
+  if (!plan) return null;
+
   return (
     <div className={styles.container}>
-      <h2>Your {planType === 'marathon' ? 'Marathon' : 'Return to Running'} Training Plan</h2>
+      <h1 className={styles.title}>Your {planType === 'marathon' ? 'Marathon' : 'Return to Running'} Training Plan</h1>
       
       <div className={styles.dates}>
-        <p>
-          <span>Start Date:</span>{' '}
-          {formatDate(plan.startDate)}
-        </p>
-        <p>
-          <span>Race Date:</span>{' '}
-          {formatDate(plan.targetDate)}
-        </p>
+        <p><strong>Start Date:</strong> {formatDate(plan.startDate)}</p>
+        <p><strong>Race Date:</strong> {formatDate(plan.targetDate)}</p>
       </div>
 
       <div className={styles.schedule}>

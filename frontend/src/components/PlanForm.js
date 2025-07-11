@@ -92,23 +92,46 @@ const useFormState = (markFormChanged) => {
   const [weeklyMileage, setWeeklyMileage] = useState(DEFAULT_FORM_VALUES.weeklyMileage);
   const [targetDate, setTargetDate] = useState(getDefaultTargetDate);
   const [experienceLevel, setExperienceLevel] = useState(DEFAULT_FORM_VALUES.experienceLevel);
-  const [raceDate, setRaceDate] = useState(null);
+  const [raceDate, setRaceDate] = useState(getDefaultTargetDate); // Initialize with same default
   const [startDate, setStartDate] = useState(null);
 
   const handleTargetDateChange = useCallback((e) => {
     const selectedDate = e.target.value;
+    console.log('Target date changed to:', selectedDate);
+    
+    // Update both target and race date
     setTargetDate(selectedDate);
     setRaceDate(selectedDate);
     
-    // Calculate the nearest Monday for start date
-    const date = new Date(selectedDate);
-    const daysUntilMonday = (8 - date.getDay()) % 7;
-    const nearestMonday = new Date(date);
-    nearestMonday.setDate(date.getDate() - (18 * 7) + daysUntilMonday); // 18 weeks before race
-    setStartDate(nearestMonday.toISOString().split('T')[0]);
+    // Calculate the nearest upcoming Monday from today
+    const today = new Date();
+    // Ensure we're working with the start of the day in local time
+    today.setHours(0, 0, 0, 0);
+    
+    const day = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+    const daysUntilMonday = day === 0 ? 1 : 8 - day; // If Sunday, next day is Monday, otherwise calculate days until next Monday
+    const nearestMonday = new Date(today);
+    nearestMonday.setDate(today.getDate() + daysUntilMonday);
+    
+    // Format date as YYYY-MM-DD in local timezone
+    const formattedStartDate = nearestMonday.toISOString().split('T')[0];
+    console.log('Selected race date:', selectedDate);
+    console.log('Calculated start date:', formattedStartDate);
+    setStartDate(formattedStartDate);
     
     markFormChanged();
   }, [markFormChanged]);
+
+  // Initialize start date when component mounts
+  useEffect(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const daysUntilMonday = day === 0 ? 1 : 8 - day;
+    const nearestMonday = new Date(today);
+    nearestMonday.setDate(today.getDate() + daysUntilMonday);
+    nearestMonday.setHours(0, 0, 0, 0);
+    setStartDate(nearestMonday.toISOString().split('T')[0]);
+  }, []);
 
   const handleExperienceLevelChange = useCallback((e) => {
     setExperienceLevel(e.target.value);
@@ -134,12 +157,26 @@ const useFormState = (markFormChanged) => {
       setSelectedDays(preferences.preferredDays || DEFAULT_FORM_VALUES.selectedDays);
       setExperienceLevel(preferences.experienceLevel || DEFAULT_FORM_VALUES.experienceLevel);
       setWeeklyMileage(preferences.weeklyMileage || DEFAULT_FORM_VALUES.weeklyMileage);
+      
+      // Handle dates properly
       if (preferences.raceDate) {
+        console.log('Loading race date from preferences:', preferences.raceDate);
         setRaceDate(preferences.raceDate);
         setTargetDate(preferences.raceDate);
       }
+      
       if (preferences.startDate) {
+        console.log('Loading start date from preferences:', preferences.startDate);
         setStartDate(preferences.startDate);
+      } else {
+        // Calculate new start date if not in preferences
+        const today = new Date();
+        const day = today.getDay();
+        const daysUntilMonday = day === 0 ? 1 : 8 - day;
+        const nearestMonday = new Date(today);
+        nearestMonday.setDate(today.getDate() + daysUntilMonday);
+        nearestMonday.setHours(0, 0, 0, 0);
+        setStartDate(nearestMonday.toISOString().split('T')[0]);
       }
     }
   }, []);
@@ -259,9 +296,12 @@ export default function PlanForm({ onSubmit, planType = 'marathon', hasPlan = fa
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    console.log('Form submission - Race Date:', raceDate);
+    console.log('Form submission - Start Date:', startDate);
+    
     const formData = {
       preferredDays: selectedDays,
-      targetDate,
+      targetDate: raceDate,
       experienceLevel,
       planType,
       weeklyMileage,
@@ -269,6 +309,8 @@ export default function PlanForm({ onSubmit, planType = 'marathon', hasPlan = fa
       raceDate,
       startDate
     };
+
+    console.log('Submitting form data:', formData);
 
     // Generate the plan first
     onSubmit(formData);

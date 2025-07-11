@@ -67,13 +67,12 @@ app.get('/', async (req, res) => {
 app.post('/generate-plan', async (req, res) => {
     try {
         console.log('Received request:', req.body);  // Add this
-        const { preferredDays, targetDate, experienceLevel } = req.body;
+        const { preferredDays, targetDate, experienceLevel, startDate } = req.body;
         
         // Load the boilerplate plan
-        // console.log(req.body);
-        const templatePath = req.body.planType === 'return-from-injury' ? path.join(__dirname, 'plan-boilerplates', 'injury', 'previous', req.body.weeklyMileage + '', 'beginner.json') : 
-        path.join(__dirname, 'plan-boilerplates', 'marathon', 'weeks', '18', 'beginner.json');
-        // const templatePath = path.join(__dirname, 'plan-boilerplates', 'marathon', 'weeks', '18', 'beginner.json');
+        const templatePath = req.body.planType === 'return-from-injury' ? 
+            path.join(__dirname, 'plan-boilerplates', 'injury', 'previous', req.body.weeklyMileage + '', 'beginner.json') : 
+            path.join(__dirname, 'plan-boilerplates', 'marathon', 'weeks', '18', 'beginner.json');
         const templateData = await fs.readFile(templatePath, 'utf8');
         const template = JSON.parse(templateData);
 
@@ -246,10 +245,9 @@ app.post('/generate-plan', async (req, res) => {
             console.error('Unexpected template structure:', template);
         }
         
-        // Calculate start date (18 weeks before target date)
+        // Use the provided startDate instead of calculating it
         const targetDateObj = new Date(targetDate);
-        const startDateObj = new Date(targetDateObj);
-        startDateObj.setDate(targetDateObj.getDate() - (18 * 7)); // 18 weeks before
+        const startDateObj = startDate ? new Date(startDate) : new Date(targetDateObj.setDate(targetDateObj.getDate() - (18 * 7))); // fallback to 18 weeks before if no startDate
         
         const plan = {
             startDate: startDateObj.toISOString(),
