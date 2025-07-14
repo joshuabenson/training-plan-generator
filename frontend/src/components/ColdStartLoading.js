@@ -26,7 +26,7 @@ export default function ColdStartLoading({ isVisible }) {
           <>
             <h3 className={styles.title}>Waking up the server...</h3>
             <p className={styles.message}>
-              This will only take a moment. The app is starting up for the first time today.
+              This will only take a moment.
             </p>
           </>
         )}
