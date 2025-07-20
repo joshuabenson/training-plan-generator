@@ -1,0 +1,4 @@
+When working with files:
+- Always include the currently opened file in the context
+- Maintain awareness of the current file's content
+- Use the current file as primary context for any operations or suggestions
